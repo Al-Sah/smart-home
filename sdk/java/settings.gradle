@@ -1,6 +1,5 @@
 rootProject.name = 'java-sdk'
 
 include 'models'
-include 'java-common'
-include 'java-common:hub'
-//include 'java-common:module'
+include 'hub'
+//include 'module'
