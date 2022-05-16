@@ -30,12 +30,17 @@ public class DeviceData {
      *  @param name
      *      <p>Case <b>DEVICES_CONNECTED</b>: custom name to describe device</p>
      *      <p>Case <b>HUB_START</b>: custom name to describe hub</p>
+     *  @param data
+     *      <p>Case <b>DEVICES_CONNECTED</b>: send device configuration/properties if necessary </p>
+     *      <p>Case <b>HUB_START</b>: hub configuration ... (heart beat period, etc)</p>
      */
-    public DeviceData(String id, String type, String name) {
+    public DeviceData(String id, String type, String name, String data) { // TODO validation ??
         this.id = id;
         this.type = type;
         this.name = name;
+        this.data = data;
     }
+
 
     /**
      * Use this constructor to describe {@link HubMessage.Action} actions:
@@ -49,7 +54,7 @@ public class DeviceData {
      *      <p>Case <b>DEVICES_DISCONNECTED</b>: reason </p>
      *      <p>Case <b>DEVICE_MESSAGE</b>: device message </p>
      */
-    public DeviceData(String id, String data){
+    public DeviceData(String id, String data){ // TODO validation ??
         this.id = id;
         this.data = data;
     }
@@ -61,6 +66,22 @@ public class DeviceData {
      */
     public DeviceData(){}
 
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(String.format("DeviceData{id='%s'",id));
+        if(type != null){
+            sb.append(String.format(", type='%s'",type));
+        }
+        if(name != null){
+            sb.append(String.format(", name='%s'",name));
+        }
+        if(data != null){
+            sb.append(String.format(", data='%s'",data));
+        }
+        sb.append('}');
+        return sb.toString();
+    }
 
     public String getType() {
         return type;

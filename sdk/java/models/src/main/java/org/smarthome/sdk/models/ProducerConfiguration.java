@@ -13,12 +13,14 @@ public class ProducerConfiguration {
     private int kafkaPartition;
     private String kafkaKey;
     private Properties kafkaProperties;
+    private Integer heartBeatPeriod;
 
     /**
      * Creates safety producer configuration
      *
      * @param topic kafka topic
-     * @param partition kafka partition (can be null)
+     * @param partition kafka partition
+     * @param period heart beat HubMessage period; if period = 0 -> heart beat will not be sending
      * @param key kafka key  (can be null)
      *
      * @param id producer UUID; Cannot be changed after initialization
@@ -30,7 +32,8 @@ public class ProducerConfiguration {
      *
      * @throws InvalidModelParams required params are invalid
      */
-    public ProducerConfiguration(String topic, String id, Properties properties, int partition, String key) throws InvalidModelParams {
+    // TODO use Builder pattern ??
+    public ProducerConfiguration(String topic, String id, Properties properties, int partition, int period, String key) throws InvalidModelParams {
 
         // TODO replace validation with regex
         if(topic == null || topic.equals("")){
@@ -49,6 +52,7 @@ public class ProducerConfiguration {
         this.kafkaProperties = properties;
         this.kafkaPartition = partition;
         this.kafkaKey = key;
+        this.heartBeatPeriod = period;
     }
 
 
@@ -65,6 +69,15 @@ public class ProducerConfiguration {
         }
         this.kafkaProperties = properties;
     }
+
+    public Integer getHeartBeatPeriod() {
+        return heartBeatPeriod;
+    }
+
+    public void setHeartBeatPeriod(int heartBeatPeriod) {
+        this.heartBeatPeriod = heartBeatPeriod;
+    }
+
 
     public void setKafkaPartition(int kafkaPartition) {
         this.kafkaPartition = kafkaPartition;

@@ -3,10 +3,12 @@ plugins {
 }
 
 group 'org.smarthome.sdk'
-version '1.0.0'
+version '1.0.1'
 
 repositories {
     mavenCentral()
 }
 
-dependencies {}
+dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
+}
