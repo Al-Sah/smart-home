@@ -22,10 +22,7 @@ public class ModuleConsumer {
         this.handler = messagesHandler;
     }
 
-    @KafkaListener(
-            id = "#{listenerProvider.getId()}",
-            topics = "#{listenerProvider.getTopics()}",
-            groupId = "#{listenerProvider.getGroup()}")
+    @KafkaListener(topics = "#{topics.get()}", containerFactory = "kafkaListenerContainerFactory")
     public void listen(
             @Payload JsonHubMessage jsonHubMessage,
             @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long ts,

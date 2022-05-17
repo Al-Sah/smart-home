@@ -1,1 +1,7 @@
-
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      client-id: test-hub
+      group-id: test-group
+    bootstrap-servers: localhost:9092

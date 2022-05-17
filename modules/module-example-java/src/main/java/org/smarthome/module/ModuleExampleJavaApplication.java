@@ -11,17 +11,10 @@ public class ModuleExampleJavaApplication {
         SpringApplication.run(ModuleExampleJavaApplication.class, args);
     }
 
-
     @Bean
-    ListenerProvider listenerProvider() {
-        return new ListenerProvider(new String[] { "hubs-messages"}, "some-id", "my-group");
+    TopicsProvider topics() {
+        return new TopicsProvider(new String[] { "hubs-messages"});
     }
 
-    /*
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    ModuleConsumer moduleConsumer() {
-        return new ModuleConsumer();
-    }*/
 
 }
