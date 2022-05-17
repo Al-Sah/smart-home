@@ -30,21 +30,21 @@ public class ProducerConfiguration {
      *          properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");}
      * </pre>
      *
-     * @throws InvalidModelParams required params are invalid
+     * @throws IllegalArgumentException required params are invalid
      */
     // TODO use Builder pattern ??
-    public ProducerConfiguration(String topic, String id, Properties properties, int partition, int period, String key) throws InvalidModelParams {
+    public ProducerConfiguration(String topic, String id, Properties properties, int partition, int period, String key) throws IllegalArgumentException {
 
         // TODO replace validation with regex
         if(topic == null || topic.equals("")){
-            throw new InvalidModelParams("field 'topic' is null or empty");
+            throw new IllegalArgumentException("field 'topic' is null or empty");
         }
         if(id == null || id.equals("")){
-            throw new InvalidModelParams("field 'id' is null or empty");
+            throw new IllegalArgumentException("field 'id' is null or empty");
         }
 
         if(properties == null || properties.isEmpty()){
-            throw new InvalidModelParams("field 'properties' is null or empty");
+            throw new IllegalArgumentException("field 'properties' is null or empty");
         }
 
         this.topic = topic;
@@ -56,16 +56,16 @@ public class ProducerConfiguration {
     }
 
 
-    public void setTopic(String topic) throws InvalidModelParams{
+    public void setTopic(String topic) throws IllegalArgumentException{
         if(topic == null || topic.equals("")){
-            throw new InvalidModelParams("field 'topic' is null or empty");
+            throw new IllegalArgumentException("field 'topic' is null or empty");
         }
         this.topic = topic;
     }
 
-    public void setKafkaProperties(Properties properties) throws InvalidModelParams{
+    public void setKafkaProperties(Properties properties) throws IllegalArgumentException{
         if(properties == null || properties.isEmpty()){
-            throw new InvalidModelParams("field 'properties' is null or empty");
+            throw new IllegalArgumentException("field 'properties' is null or empty");
         }
         this.kafkaProperties = properties;
     }

@@ -13,6 +13,9 @@ import org.smarthome.sdk.models.HubMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthome.sdk.models.MessageAction;
+import org.smarthome.sdk.models.json.HubMessageMapper;
+import org.smarthome.sdk.models.json.JsonHubMessage;
 import org.smarthome.sdk.models.ProducerConfiguration;
 
 import java.nio.charset.StandardCharsets;
@@ -32,7 +35,7 @@ public class HubProducer {
 
     private final ProducerConfiguration configuration;
     private final List<Header> hubHeaders;
-    private final KafkaProducer<String, HubMessage> producer;
+    private final KafkaProducer<String, JsonHubMessage> producer;
     private static final String HUB_ID_HEADER = "hub-id";
     private static final Logger logger = LoggerFactory.getLogger(HubProducer.class);
 
@@ -48,7 +51,7 @@ public class HubProducer {
      *     <li>Invalid startup message</li>
      * </ul>
      */
-    public HubProducer(ProducerConfiguration configuration, HubMessage startMessage) throws HubProducerException {
+    public HubProducer(ProducerConfiguration configuration, HubMessage<String> startMessage) throws HubProducerException {
 
         if(configuration == null){
             throw new HubProducerException("Configuration is null");
@@ -78,9 +81,9 @@ public class HubProducer {
     }
 
 
-    private void sendInitialMessage(HubMessage msg) throws HubProducerException {
+    private void sendInitialMessage(HubMessage<String> msg) throws HubProducerException {
 
-        if(msg == null || msg.getAction() == null || msg.getActionAsEnum() != HubMessage.Action.HUB_START){
+        if(msg == null || msg.getAction() == null || msg.getAction() != MessageAction.HUB_START){
             throw new HubProducerException("Invalid startup message");
         }
 
@@ -100,7 +103,7 @@ public class HubProducer {
     private void sendHeartBeat(){
         try {
             send(
-                    new HubMessage(HubMessage.Action.HEART_BEAT, null),
+                    new HubMessage<String>(MessageAction.HEART_BEAT, null),
                     (metadata, exception) -> {
                         if(exception != null){
                             logger.error(exception.getMessage());
@@ -119,7 +122,7 @@ public class HubProducer {
      *  Generate and asynchronously send record with specified {@link HubMessage} to kafka broker and
      *  invoke the provided callback when 'producer.send(record, callback)' has been acknowledged.
      */
-    public Future<RecordMetadata> send(HubMessage message, Callback callback) throws HubProducerException {
+    public Future<RecordMetadata> send(HubMessage<?> message, Callback callback) throws HubProducerException {
 
         if(message == null || message.getAction() == null){
             throw new HubProducerException("Invalid message");
@@ -130,7 +133,7 @@ public class HubProducer {
                 configuration.getKafkaPartition(),
                 new Date().getTime(),
                 configuration.getKafkaKey(),
-                message,
+                HubMessageMapper.getMessage(message),
                 hubHeaders
         );
 
@@ -146,10 +149,10 @@ public class HubProducer {
     /**
      *  Stop hub producer. </br>
      */
-    public void stop(Callback callback) throws HubProducerException{
+    public void stop(Callback callback, String reason) throws HubProducerException{
         try {
             scheduler.shutdown();
-            send(new HubMessage(HubMessage.Action.HUB_OFF, null), callback);
+            send(new HubMessage<>(MessageAction.HUB_OFF, reason), callback);
             producer.flush();
             producer.close();
         } catch (Exception e) {
@@ -165,10 +168,6 @@ public class HubProducer {
 
     public List<Header> getHubHeaders() {
         return hubHeaders;
-    }
-
-    public KafkaProducer<String, HubMessage> getProducer() {
-        return producer;
     }
 
 }

@@ -1,10 +1,11 @@
 package org.smarthome.sdk.models;
 
 /**
- * Model {@code DeviceData} is used to describe each variation of data that hub can produce.
+ * Model {@code DeviceData} is used to describe device message.
+ * When actuator or sensor produces some data it must be described by {@code DeviceData}
  *
  * @see HubMessage
- * @see HubMessage.Action
+ * @see MessageAction
  * @author  Al-Sah
  */
 public class DeviceData {
@@ -15,24 +16,11 @@ public class DeviceData {
     private String data;
 
     /**
-     * Use this constructor to describe {@link HubMessage.Action} actions:
-     *  <ul>
-     *      <li>DEVICES_CONNECTED</li>
-     *      <li>HUB_START</li>
-     *  </ul>
-     *
-     *  @param id
-     *      <p>Case <b>DEVICES_CONNECTED</b>: device (sensor or actuator) uuid</p>
-     *      <p>Case <b>HUB_START</b>:  Hub uuid </p>
-     *  @param type
-     *      <p>Case <b>DEVICES_CONNECTED</b>: name of device given by manufacturer</p>
-     *      <p>Case <b>HUB_START</b>: hub type (application, microcontroller, smart-device-name .....)</p>
-     *  @param name
-     *      <p>Case <b>DEVICES_CONNECTED</b>: custom name to describe device</p>
-     *      <p>Case <b>HUB_START</b>: custom name to describe hub</p>
-     *  @param data
-     *      <p>Case <b>DEVICES_CONNECTED</b>: send device configuration/properties if necessary </p>
-     *      <p>Case <b>HUB_START</b>: hub configuration ... (heart beat period, etc)</p>
+     * Use this constructor to describe {@link MessageAction}.DEVICES_CONNECTED action
+     *  @param id device (sensor or actuator) uuid
+     *  @param type name of device given by manufacturer
+     *  @param name custom name to describe device
+     *  @param data additional field where device configuration/properties or something else can be described
      */
     public DeviceData(String id, String type, String name, String data) { // TODO validation ??
         this.id = id;
@@ -41,9 +29,8 @@ public class DeviceData {
         this.data = data;
     }
 
-
     /**
-     * Use this constructor to describe {@link HubMessage.Action} actions:
+     * Use this constructor to describe {@link MessageAction} actions:
      *  <ul>
      *      <li>DEVICES_DISCONNECTED</li>
      *      <li>DEVICE_MESSAGE</li>
@@ -58,14 +45,6 @@ public class DeviceData {
         this.id = id;
         this.data = data;
     }
-
-
-    /**
-     * Default constructor, DO NOT USE IT !!!!
-     * Used by jackson (json Serialization/Deserialization)
-     */
-    public DeviceData(){}
-
 
     @Override
     public String toString() {
