@@ -4,6 +4,7 @@ import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;
 import org.smarthome.sdk.models.MessageAction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,21 +23,21 @@ public class HubMessageMapper {
             return new HubMessage<>(action, message.getData());
         }
 
-        return new HubMessage<>(action, message.getMessages());
+        return new HubMessage<>(action, castJsonDeviceMessages(message.getMessages()));
     }
 
     public static JsonHubMessage getMessage(HubMessage<?> message) throws RuntimeException{
 
         if(message.getAction() == MessageAction.HEART_BEAT){
-            return new JsonHubMessage(message.getAction().name, (String)null);
+            return new JsonHubMessage(message.getAction().name, null, null);
         }
         if(message.getData().getClass() == String.class){
-            return new JsonHubMessage(message.getAction().name, (String)message.getData());
+            return new JsonHubMessage(message.getAction().name, null, (String)message.getData());
         }
 
         if(message.getData() instanceof List){
             // TODO fix warning Unchecked cast: 'capture<?>' to 'java.util.List<org.smarthome.sdk.models.DeviceData>'
-            return new JsonHubMessage(message.getAction().name, (List<DeviceData>) message.getData());
+            return new JsonHubMessage(message.getAction().name, castDeviceMessages((List<DeviceData>)message.getData()), null);
         }
 
         throw new RuntimeException("Failed to recognize HubMessage data type: " + message.getData().getClass());
@@ -50,4 +51,21 @@ public class HubMessageMapper {
         }
         throw new RuntimeException("Failed to recognize message action");
     }
+
+    private static List<JsonDeviceData> castDeviceMessages(List<DeviceData> messages){
+        ArrayList<JsonDeviceData> result = new ArrayList<>(messages.size());
+        for (DeviceData message : messages) {
+            result.add(new JsonDeviceData(message));
+        }
+        return result;
+    }
+
+    private static List<DeviceData> castJsonDeviceMessages(List<JsonDeviceData> messages){
+        ArrayList<DeviceData> result = new ArrayList<>(messages.size());
+        for (JsonDeviceData message : messages) {
+            result.add(new DeviceData(message.getId(), message.getType(),  message.getName(), message.getData()));
+        }
+        return result;
+    }
+
 }
