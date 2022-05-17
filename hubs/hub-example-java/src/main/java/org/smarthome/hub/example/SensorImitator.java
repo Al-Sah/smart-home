@@ -19,7 +19,7 @@ public class SensorImitator {
 
 
     public String getData() {
-        return String.format("{\"value\" \"%d\", \"unit\" \"celsius\"}", random.nextInt(50) -25 );
+        return String.format("{\"value\": %d}", random.nextInt(50) -25 );
     }
 
     public String getId() {

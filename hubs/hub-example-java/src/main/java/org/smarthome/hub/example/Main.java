@@ -8,6 +8,7 @@ import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;
 
 import org.smarthome.sdk.hub.HubProducer;
+import org.smarthome.sdk.models.MessageAction;
 import org.smarthome.sdk.models.ProducerConfiguration;
 
 import java.util.*;
@@ -15,7 +16,7 @@ import java.util.*;
 public class Main {
 
     public static HubProducer producer;
-    public static String habId = "java-hub-sample-use-sdk";
+    public static String hubId = "java-hub-sample-use-sdk";
     public static String topic = "hubs-messages";
 
     // TODO logger config
@@ -28,8 +29,7 @@ public class Main {
 
 
         try {
-            var data = new ArrayList<>(List.of(new DeviceData(habId, "hub", "test-hub")));
-            setupProducer(new HubMessage(HubMessage.Action.HUB_START, data));
+            setupProducer(new HubMessage<>(MessageAction.HUB_START, "test-hub"));
         } catch (HubProducerException e) {
             System.out.println(e.getMessage());
             return;
@@ -59,6 +59,14 @@ public class Main {
 
         try {
             producer.send(
+                    new HubMessage<>(MessageAction.HUB_MESSAGE, "hub is shutting down"),
+                    (event, ex)-> System.out.println(event));
+        } catch (HubProducerException e) {
+            System.out.println(e.getMessage());
+        }
+
+        try {
+            producer.send(
                     createDevicesDisconnectedMessage(List.of(sensor1, sensor2)),
                     (event, ex)-> System.out.println(event));
         } catch (HubProducerException e) {
@@ -67,46 +75,46 @@ public class Main {
 
 
         try {
-            producer.stop((event, ex)-> System.out.println(event));
+            producer.stop((event, ex)-> System.out.println(event), "test-end");
         } catch (HubProducerException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    public static HubMessage createDevicesConnectedMessage(List<SensorImitator> sensors){
+    public static HubMessage<List<DeviceData>> createDevicesConnectedMessage(List<SensorImitator> sensors){
 
         var data = new ArrayList<DeviceData>();
         for (SensorImitator sensor : sensors) {
-            data.add(new DeviceData(sensor.getId(), sensor.getType(), sensor.getName()));
+            data.add(new DeviceData(sensor.getId(), sensor.getType(), sensor.getName(), "{\"unit\":\"celsius\"}"));
         }
-        return new HubMessage(HubMessage.Action.DEVICES_CONNECTED, data);
+        return new HubMessage<>(MessageAction.DEVICES_CONNECTED, data);
     }
 
-    public static HubMessage createDevicesDisconnectedMessage(List<SensorImitator> sensors){
+    public static HubMessage<List<DeviceData>> createDevicesDisconnectedMessage(List<SensorImitator> sensors){
 
         var data = new ArrayList<DeviceData>();
         for (SensorImitator sensor : sensors) {
             data.add(new DeviceData(sensor.getId(), "Connection lost"));
         }
-        return new HubMessage(HubMessage.Action.DEVICES_DISCONNECTED, data);
+        return new HubMessage<>(MessageAction.DEVICES_DISCONNECTED, data);
     }
 
-    public static HubMessage createDevicesDataMessage(List<SensorImitator> sensors){
+    public static HubMessage<List<DeviceData>> createDevicesDataMessage(List<SensorImitator> sensors){
 
         var data = new ArrayList<DeviceData>();
         for (SensorImitator sensor : sensors) {
             data.add(new DeviceData(sensor.getId(), sensor.getData()));
         }
-        return new HubMessage(HubMessage.Action.DEVICE_MESSAGE, data);
+        return new HubMessage<>(MessageAction.DEVICE_MESSAGE, data);
     }
 
-    public static void setupProducer(HubMessage initialMessage) throws HubProducerException {
+    public static void setupProducer(HubMessage<String> initialMessage) throws HubProducerException {
 
         var properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        var producerConfiguration = new ProducerConfiguration(topic, habId, properties, 0, null);
-        producer = new HubProducer(producerConfiguration, initialMessage, (event, ex) -> System.out.println(event));
+        var producerConfiguration = new ProducerConfiguration(topic, hubId, properties, 0, (short)10,null);
+        producer = new HubProducer(producerConfiguration, initialMessage);
     }
 
 }
