@@ -8,13 +8,13 @@
 ### Hub messages
 
 Hub can produce several types of messages:
-1. [Hub start](#Hub start)
-2. [Hub stop](#Hub stop)
-3. [Hub message](#Hub message)
-4. [Heart beat](#Heart beat)
-5. [Devices connected](#Devices connected)
-6. [Devices messages](#Devices messages)
-7. [Devices disconnected](#Devices disconnected)
+1. [Hub start](#hub-start)
+2. [Hub stop](#hub-stop)
+3. [Hub message](#hub-message)
+4. [Heart beat](#heart-beat)
+5. [Devices connected](#devices-connected)
+6. [Devices messages](#devices-messages)
+7. [Devices disconnected](#devices-disconnected)
 
 <b> Note that each message contains "hub-id" header ! </b>
 <p> Field "action" is a shortcut for the MessageAction </p>
