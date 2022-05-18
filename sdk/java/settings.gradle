@@ -2,4 +2,4 @@ rootProject.name = 'java-sdk'
 
 include 'models'
 include 'hub'
-//include 'module'
+include 'module'

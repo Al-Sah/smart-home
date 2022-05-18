@@ -1,4 +1,4 @@
-package org.smarthome.module;
+package org.smarthome.sdk.module;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.smarthome.sdk.models.json.JsonHubMessage;

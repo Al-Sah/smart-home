@@ -1,4 +1,4 @@
-package org.smarthome.module;
+package org.smarthome.sdk.module;
 
 import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;
@@ -16,18 +16,22 @@ import java.util.List;
 @Component
 public class ModuleConsumer {
 
+    /**
+     * Default handler {@link DefaultHubMessagesHandler} can be used
+     */
     private final HubMessagesHandler handler;
 
     public ModuleConsumer(HubMessagesHandler messagesHandler) {
         this.handler = messagesHandler;
     }
 
+
     @KafkaListener(topics = "#{topics.get()}", containerFactory = "kafkaListenerContainerFactory")
     public void listen(
-            @Payload JsonHubMessage jsonHubMessage,
+            @Payload JsonHubMessage message,
             @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long ts,
             @Header("hub-id") String hub) {
-        handleMessage(HubMessageMapper.getMessage(jsonHubMessage), ts, hub);
+        handleMessage(HubMessageMapper.getMessage(message), ts, hub);
     }
 
     private void handleMessage(HubMessage<?> message, long timestamp, String hubId){

@@ -1,4 +1,4 @@
-package org.smarthome.module;
+package org.smarthome.sdk.module;
 
 
 import org.slf4j.Logger;
