@@ -1,9 +1,10 @@
-package org.smarthome.sdk.module;
+package org.smarthome.sdk.module.consumer;
 
 import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;
 import org.smarthome.sdk.models.json.HubMessageMapper;
 import org.smarthome.sdk.models.json.JsonHubMessage;
+import org.smarthome.sdk.module.consumer.impl.DefaultHubMessagesHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -26,7 +27,7 @@ public class ModuleConsumer {
     }
 
 
-    @KafkaListener(topics = "#{topics.get()}", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "#{listenerTopics.get()}", containerFactory = "kafkaListenerContainerFactory")
     public void listen(
             @Payload JsonHubMessage message,
             @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long ts,

@@ -1,4 +1,4 @@
-package org.smarthome.sdk.module;
+package org.smarthome.sdk.module.consumer;
 
 import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;

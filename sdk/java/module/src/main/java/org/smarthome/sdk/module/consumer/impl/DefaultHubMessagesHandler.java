@@ -1,17 +1,18 @@
-package org.smarthome.sdk.module;
+package org.smarthome.sdk.module.consumer.impl;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.sdk.models.DeviceData;
 import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.module.consumer.HubMessagesHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
 
 @Component
-public class DefaultHubMessagesHandler implements HubMessagesHandler{
+public class DefaultHubMessagesHandler implements HubMessagesHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultHubMessagesHandler.class);
 
