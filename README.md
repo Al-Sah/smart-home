@@ -9,12 +9,12 @@
 
 Hub can produce several types of messages:
 1. [Hub start](#hub-start)
-2. [Hub stop](#hub-stop)
+2. [Hub shutdown](#hub-shutdown)
 3. [Hub message](#hub-message)
-4. [Heart beat](#heart-beat)
-5. [Devices connected](#devices-connected)
-6. [Devices messages](#devices-messages)
-7. [Devices disconnected](#devices-disconnected)
+4. [Heart beat](#hub-heart-beat)
+5. [Device connected](#device-connected)
+6. [Device disconnected](#device-disconnected)
+7. [Device messages](#device-message)
 
 <b> Note that each message contains "hub-id" header ! </b>
 <p> Field "action" is a shortcut for the MessageAction </p>
@@ -30,13 +30,13 @@ Field "data" contains hub description and extra properties like heart beat perio
     }
 ```
 
-#### Hub stop
+#### Hub shutdown
 Field "data" contains disconnection reason 
 ```json
     {
         "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
-        "action":"off",
-        "data":"Hub is shutting down"
+        "action":"shutdown",
+        "data":"{\"reason\": \"shutting down\"}"
     }
 ```
 
@@ -51,7 +51,7 @@ Notify about some changes in configuration or handle some user request and send 
     }
 ```
 
-#### Heart beat
+#### Hub heart beat
 Hub must produce heart beat message with fixed period. For instance, each 30 seconds
 ```json
     {
@@ -61,7 +61,7 @@ Hub must produce heart beat message with fixed period. For instance, each 30 sec
     }
 ```
 
-#### Devices connected
+#### Device connected
 Hub must send notification on device connection
  * **hub-id** - const hub uuid
  * **device-id** - const device uuid 
@@ -78,22 +78,8 @@ Hub must send notification on device connection
     }
 ```
 
-#### Devices messages
- * **hub-id** - const hub uuid
- * **device-id** - const device uuid 
- * **data** - parsed information given from device and presented as a string in json format
 
-```json
-    {
-        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
-        "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
-        "action":"msg",
-        "data": "some data"
-    }
-```
-
-
-#### Devices disconnected
+#### Device disconnected
 Hub must send notification on devices disconnection
 * **hub-id** - const hub uuid
 * **device-id** - const device uuid 
@@ -105,5 +91,20 @@ Hub must send notification on devices disconnection
         "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
         "action":"devices-disconnected",
         "data": "connection lost"
+    }
+```
+
+
+#### Device message
+ * **hub-id** - const hub uuid
+ * **device-id** - const device uuid 
+ * **data** - parsed information given from device and presented as a string in json format
+
+```json
+    {
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
+        "action":"msg",
+        "data": "{\"value\": \"value\"}"
     }
 ```
