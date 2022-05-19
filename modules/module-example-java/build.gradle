@@ -31,7 +31,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
-    implementation files('models-1.0.1.jar', 'module-1.0.0-SNAPSHOT.jar')
+    implementation files('models-1.0.1.jar', 'module-1.0.1.jar')
 }
 
 tasks.named('test') {

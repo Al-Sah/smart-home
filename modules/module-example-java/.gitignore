@@ -37,3 +37,4 @@ out/
 .vscode/
 
 models-*.jar
+module-*.jar
