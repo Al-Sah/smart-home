@@ -7,7 +7,8 @@ public class CommandMapper {
 
     public static Command getCommand(JsonCommand command){
         return new Command(
-                command.getActuator(),
+                command.getHub(),
+                command.getDevice(),
                 command.getTask(),
                 command.getExpiration()
         );

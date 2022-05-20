@@ -9,9 +9,9 @@ package org.smarthome.sdk.models;
  */
 public class HubMessage<Data> {
 
-    /**
-     * action = Action.name
-     */
+
+    private String hub;
+
     private MessageAction action;
 
     private Data data;
@@ -29,7 +29,11 @@ public class HubMessage<Data> {
      *
      * @throws IllegalArgumentException if action was not set
      */
-    public HubMessage(MessageAction action, Data data) throws IllegalArgumentException {
+    public HubMessage(String hub, MessageAction action, Data data) throws IllegalArgumentException {
+
+        if(hub == null || hub.isEmpty()){
+            throw new IllegalArgumentException("filed 'hub' is not set");
+        }
 
         if(action == null){
             throw new IllegalArgumentException("filed 'action' is not set");
@@ -38,6 +42,7 @@ public class HubMessage<Data> {
             throw new IllegalArgumentException("filed 'data' is empty or not set");
         }
 
+        this.hub = hub;
         this.action = action;
         this.data = data;
     }
@@ -56,6 +61,14 @@ public class HubMessage<Data> {
 
     public Data getData() {
         return data;
+    }
+
+    public String getHub() {
+        return hub;
+    }
+
+    public void setHub(String hub) {
+        this.hub = hub;
     }
 
     public void setData(Data data) {

@@ -19,7 +19,9 @@ public class JsonDeviceData {
 
     private final String id;
     private final String type;
-    private final String name;
+
+    @Deprecated
+    private final String name; // TODO remove in future
     private final String data;
 
     @JsonCreator

@@ -3,34 +3,41 @@ package org.smarthome.sdk.models.json;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.smarthome.sdk.models.Command;
-import org.smarthome.sdk.models.DeviceData;
 
 public class JsonCommand {
 
-    private final String actuator;
+    private final String hub;
+    private final String device;
     private final String task;
     private final long expiration;
 
 
     @JsonCreator
     public JsonCommand(
-            @JsonProperty("id") String actuator,
+            @JsonProperty("hub") String hub,
+            @JsonProperty("device") String device,
             @JsonProperty("task") String task,
             @JsonProperty("expire") long expiration) {
-        this.actuator = actuator;
+        this.hub = hub;
+        this.device = device;
         this.task = task;
         this.expiration = expiration;
     }
 
     public JsonCommand(Command data) {
-        this.actuator = data.getActuator();
+        this.hub = data.getHub();
+        this.device = data.getDevice();
         this.task = data.getTask();
         this.expiration = data.getExpiration();
     }
 
 
-    public String getActuator() {
-        return actuator;
+    public String getHub() {
+        return hub;
+    }
+
+    public String getDevice() {
+        return device;
     }
 
     public String getTask() {

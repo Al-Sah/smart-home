@@ -3,25 +3,27 @@ package org.smarthome.sdk.models;
 import java.util.Date;
 
 /**
- * Send command to actuator
+ * Send command to the device
  *
  * @author  Al-Sah
  */
 public class Command {
 
-    private String actuator;
+    private String hub;
+    private String device;
     private String task;
     private long expiration;
 
     /**
-     *
-     * @param actuator actuator uuid
+     * @param hub hub uuid
+     * @param device sensor/actuator uuid
      * @param task data which be processed by specified actuator
      * @param expiration task will be ignored after expiration time (since Unix Epoch); Set 0 to cancel expiration
      * @throws IllegalArgumentException expiration time in past
      */
-    public Command(String actuator, String task, long expiration) throws IllegalArgumentException {
-        this.actuator = actuator;
+    public Command(String hub, String device, String task, long expiration) throws IllegalArgumentException {
+        this.hub = hub;
+        this.device = device;
         this.task = task;
         if(expiration != 0 && System.currentTimeMillis() > expiration ){
             throw new IllegalArgumentException("Invalid expiration time");
@@ -32,13 +34,13 @@ public class Command {
 
     /**
      *
-     * @param actuator actuator uuid
+     * @param device actuator uuid
      * @param task data which be processed by specified actuator
      * @param expiration task will be ignored after expiration time (since Unix Epoch); Set 0 to cancel expiration
      * @throws IllegalArgumentException expiration time in past
      */
-    public Command(String actuator, String task, Date expiration) throws IllegalArgumentException{
-        this(actuator, task, expiration.getTime());
+    public Command(String hub, String device, String task, Date expiration) throws IllegalArgumentException{
+        this(hub, device, task, expiration.getTime());
     }
 
 
@@ -51,12 +53,21 @@ public class Command {
         return System.currentTimeMillis() + (seconds * 60000L);
     }
 
-    public String getActuator() {
-        return actuator;
+
+    public String getHub() {
+        return hub;
     }
 
-    public void setActuator(String actuator) {
-        this.actuator = actuator;
+    public void setHub(String hub) {
+        this.hub = hub;
+    }
+
+    public String getDevice() {
+        return device;
+    }
+
+    public void setDevice(String device) {
+        this.device = device;
     }
 
     public String getTask() {

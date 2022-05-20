@@ -20,24 +20,24 @@ public class HubMessageMapper {
         }
 
         if (action == MessageAction.HEART_BEAT || message.getData() != null) {
-            return new HubMessage<>(action, message.getData());
+            return new HubMessage<>( message.getHub(),action, message.getData());
         }
 
-        return new HubMessage<>(action, castJsonDeviceMessages(message.getMessages()));
+        return new HubMessage<>( message.getHub(), action, castJsonDeviceMessages(message.getMessages()));
     }
 
     public static JsonHubMessage getMessage(HubMessage<?> message) throws RuntimeException{
 
         if(message.getAction() == MessageAction.HEART_BEAT){
-            return new JsonHubMessage(message.getAction().name, null, null);
+            return new JsonHubMessage(message.getHub(), message.getAction().name, null, null);
         }
         if(message.getData().getClass() == String.class){
-            return new JsonHubMessage(message.getAction().name, null, (String)message.getData());
+            return new JsonHubMessage(message.getHub(), message.getAction().name, null, (String)message.getData());
         }
 
         if(message.getData() instanceof List){
             // TODO fix warning Unchecked cast: 'capture<?>' to 'java.util.List<org.smarthome.sdk.models.DeviceData>'
-            return new JsonHubMessage(message.getAction().name, castDeviceMessages((List<DeviceData>)message.getData()), null);
+            return new JsonHubMessage(message.getHub(), message.getAction().name, castDeviceMessages((List<DeviceData>)message.getData()), null);
         }
 
         throw new RuntimeException("Failed to recognize HubMessage data type: " + message.getData().getClass());
