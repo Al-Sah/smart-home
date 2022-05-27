@@ -4,10 +4,10 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Model {@code HubConfiguration} configuration.
+ * Model {@code HubProducerConfiguration} configuration.
  * @author Al-Sah
  */
-public class HubConfiguration {
+public class HubProducerConfiguration {
 
     private final String hubId; // this hub uuid
     private final String topic; // kafka topic
@@ -44,7 +44,7 @@ public class HubConfiguration {
      * @param key        ProducerRecord key (can be null)
      * @throws IllegalArgumentException required params are invalid
      */
-    public HubConfiguration(
+    public HubProducerConfiguration(
             String topic,
             String hubId,
             Properties properties,
@@ -75,7 +75,7 @@ public class HubConfiguration {
      * @param properties kafka properties.
      * @throws IllegalArgumentException required params are invalid
      */
-    public HubConfiguration(String topic, String hubId, Properties properties, String name) throws IllegalArgumentException {
+    public HubProducerConfiguration(String topic, String hubId, Properties properties, String name) throws IllegalArgumentException {
 
         this.topic = topic;
         this.hubId = hubId;

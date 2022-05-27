@@ -20,12 +20,12 @@ import java.util.concurrent.*;
  * {@code HubProducer} is used to set up KafkaProducer and send data to the Broker
  *
  * @see HubMessage
- * @see HubConfiguration
+ * @see HubProducerConfiguration
  * @author  Al-Sah
  */
 public class HubProducer {
 
-    private final HubConfiguration configuration;
+    private final HubProducerConfiguration configuration;
     private final KafkaProducer<String, HubMessage<?>> producer;
     private static final Logger logger = LoggerFactory.getLogger(HubProducer.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -52,7 +52,7 @@ public class HubProducer {
      * @param configuration HubProducer configuration
      * @throws HubProducerException :configuration is null | invalid startup message | timeout expired
      */
-    public HubProducer(HubConfiguration configuration) throws HubProducerException {
+    public HubProducer(HubProducerConfiguration configuration) throws HubProducerException {
 
         if(configuration == null){
             throw new HubProducerException("Configuration is null");
@@ -183,7 +183,7 @@ public class HubProducer {
     /**
      * @return hub configuration
      */
-    public HubConfiguration getConfiguration() {
+    public HubProducerConfiguration getConfiguration() {
         return configuration;
     }
 }

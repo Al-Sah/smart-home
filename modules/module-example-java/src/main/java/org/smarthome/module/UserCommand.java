@@ -1,4 +1,4 @@
-package org.smarthome.sdk.module.producer;
+package org.smarthome.module;
 
 import java.util.Date;
 
