@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.smarthome.climate'
-version '1.0-SNAPSHOT'
+version '1.0.1'
 
 repositories {
     mavenCentral()
@@ -20,7 +20,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl
     implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.17.2'
 
-    implementation files('hub-1.0.1.jar', 'models-1.0.1.jar')
+    implementation files('hub-1.1.0.jar', 'models-1.1.0.jar')
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
