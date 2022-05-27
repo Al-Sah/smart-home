@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'org.smarthome'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-example'
 sourceCompatibility = "14"
 
 configurations {
@@ -31,7 +31,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
-    implementation files('models-1.0.1.jar', 'module-1.0.1.jar')
+    implementation files('models-1.1.0.jar', 'module-1.1.0.jar')
 }
 
 tasks.named('test') {
