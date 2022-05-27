@@ -23,21 +23,21 @@ public class ModuleProducer {
     }
 
 
-    public void sendAsync(final UserCommand userCommand) {
-        sendAsync(userCommand, new CommandSendCallback());
+    public void sendAsync(final Command command) {
+        sendAsync(command, new CommandSendCallback());
     }
 
-    public void sendAsync(final UserCommand userCommand, KafkaSendCallback<String, Command> callback) {
+    public void sendAsync(final Command command, KafkaSendCallback<String, Command> callback) {
 
-        var future = template.send(createRecord(provider, userCommand));
+        var future = template.send(createRecord(provider, command));
         future.addCallback(callback);
     }
 
 
-    public ProducerRecord<String, Command> sendSync(final UserCommand userCommand) throws RuntimeException {
+    public ProducerRecord<String, Command> sendSync(final Command command) throws RuntimeException {
         try {
             return template
-                    .send(createRecord(provider, userCommand))
+                    .send(createRecord(provider, command))
                     .get(20, TimeUnit.SECONDS)
                     .getProducerRecord();
         }
@@ -47,12 +47,13 @@ public class ModuleProducer {
     }
 
 
-    private static ProducerRecord<String, Command> createRecord(ProducerProvider provider, UserCommand userCommand){
+    private static ProducerRecord<String, Command> createRecord(ProducerProvider provider, Command command){
         return new ProducerRecord<>(
                 provider.getTopic(),
                 provider.getPartition(),
                 new Date().getTime(),
                 provider.getKey(),
-                new Command(null, null, null, null, null, 0));
+                command
+        );
     }
 }
