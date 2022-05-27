@@ -102,7 +102,7 @@ public class PlainThermometer extends Device {
 
     @Override
     public void execute(Command command) {
-        // no writable properties
+        callback.send(id, null, null, null, "No writable properties");
     }
 
     public void stop() {

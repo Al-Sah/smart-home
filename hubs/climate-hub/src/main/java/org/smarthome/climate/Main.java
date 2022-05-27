@@ -1,40 +1,39 @@
 package org.smarthome.climate;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.smarthome.sdk.hub.device.ConstantDeviceProperty;
-import org.smarthome.sdk.hub.device.DeviceComponent;
-import org.smarthome.sdk.hub.device.IntegerNumberConstraint;
-import org.smarthome.sdk.hub.device.WritableDeviceProperty;
+import org.smarthome.sdk.hub.consumer.HubConsumer;
+import org.smarthome.sdk.hub.consumer.HubConsumerConfiguration;
+import org.smarthome.sdk.hub.consumer.HubConsumerException;
 import org.smarthome.sdk.hub.producer.DeviceMessageCallback;
-import org.smarthome.sdk.hub.producer.HubConfiguration;
 import org.smarthome.sdk.hub.producer.HubProducer;
+import org.smarthome.sdk.hub.producer.HubProducerConfiguration;
 import org.smarthome.sdk.hub.producer.HubProducerException;
 import org.smarthome.sdk.models.DeviceDisconnectionDetails;
-import org.smarthome.sdk.models.DeviceType;
-import org.smarthome.sdk.models.HubShutdownDetails;
 import org.smarthome.sdk.models.MessageAction;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class Main {
 
     public static String hubId = "smart-home-climate-hub";
-    public static String topic = "hubs-messages";
+
     public static HubProducer producer;
+    public static HubConsumer consumer;
+
+    public static ClimateHubCommandsHandler commandsHandler;
 
     public static void main(String[] args) {
 
         try {
-            var properties = new Properties();
-            properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-            var producerConfiguration = new HubConfiguration(topic, hubId, properties, "climate-hub");
-            producer = new HubProducer(producerConfiguration);
-        } catch (HubProducerException e) {
+            setup();
+        } catch (HubProducerException | HubConsumerException e) {
             System.out.println(e.getMessage());
             return;
         }
-
 
         var callback = new DeviceMessageCallback(producer);
 
@@ -47,6 +46,7 @@ public class Main {
                 callback,
                 new ImitationPattern(1, 6, 2)
         );
+        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer)));
 
 
         try {
@@ -75,6 +75,22 @@ public class Main {
         }
 
 
+    }
+
+    public static void setup() throws HubProducerException, HubConsumerException{
+
+        var producerProperties = new Properties();
+        producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        var producerConfiguration = new HubProducerConfiguration("hubs-messages", hubId, producerProperties, "climate-hub");
+        producer = new HubProducer(producerConfiguration);
+
+        commandsHandler = new ClimateHubCommandsHandler(producer);
+
+        var consumerProperties = new Properties();
+        consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, hubId);
+        var consumerConfiguration = new HubConsumerConfiguration("modules-messages", hubId, consumerProperties, commandsHandler);
+        consumer = new HubConsumer(consumerConfiguration);
     }
 
 
