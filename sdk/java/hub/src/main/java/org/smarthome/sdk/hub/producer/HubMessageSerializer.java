@@ -1,4 +1,4 @@
-package org.smarthome.sdk.hub.serialization;
+package org.smarthome.sdk.hub.producer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,7 +7,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.sdk.models.HubMessage;
-import org.smarthome.sdk.models.json.JsonHubMessage;
 
 /**
  * Class {@code HubMessageSerializer} is custom json serializer used by {@link org.apache.kafka.clients.producer.KafkaProducer}
@@ -15,7 +14,7 @@ import org.smarthome.sdk.models.json.JsonHubMessage;
  * @see HubMessage
  * @author  Al-Sah
  */
-public class HubMessageSerializer implements Serializer<JsonHubMessage> {
+public class HubMessageSerializer implements Serializer<HubMessage<?>> {
 
     private static final Logger logger = LoggerFactory.getLogger(HubMessageSerializer.class);
 
@@ -30,7 +29,7 @@ public class HubMessageSerializer implements Serializer<JsonHubMessage> {
     }
 
     @Override
-    public byte[] serialize(String topic, JsonHubMessage data) {
+    public byte[] serialize(String topic, HubMessage data) {
         try {
             return mapper.writeValueAsBytes(data);
         } catch (Exception e) {

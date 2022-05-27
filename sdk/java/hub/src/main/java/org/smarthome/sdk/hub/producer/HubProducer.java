@@ -1,4 +1,4 @@
-package org.smarthome.sdk.hub;
+package org.smarthome.sdk.hub.producer;
 
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -7,11 +7,11 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthome.sdk.hub.serialization.HubMessageSerializer;
-import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.hub.device.Device;
+import org.smarthome.sdk.models.HubProperties;
+import org.smarthome.sdk.models.HubShutdownDetails;
 import org.smarthome.sdk.models.MessageAction;
-import org.smarthome.sdk.models.json.HubMessageMapper;
-import org.smarthome.sdk.models.json.JsonHubMessage;
+import org.smarthome.sdk.models.HubMessage;
 
 import java.util.Date;
 import java.util.concurrent.*;
@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 public class HubProducer {
 
     private final HubConfiguration configuration;
-    private final KafkaProducer<String, JsonHubMessage> producer;
+    private final KafkaProducer<String, HubMessage<?>> producer;
     private static final Logger logger = LoggerFactory.getLogger(HubProducer.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -35,14 +35,14 @@ public class HubProducer {
      * Additional data can be sent on 'heart beat'
      * Must be in JSON format
      */
-    private String HearBeatData;
+    private String heartBeatData;
 
     /**
-     * @param hearBeatData data that will be sending in 'heart-beat' message;
+     * @param heartBeatData data that will be sending in 'heart-beat' message;
      * This data is used by local thread
      */
-    public void setHearBeatData(String hearBeatData) {
-        HearBeatData = hearBeatData;
+    public void setHeartBeatData(String heartBeatData) {
+        this.heartBeatData = heartBeatData;
     }
 
     /**
@@ -50,10 +50,9 @@ public class HubProducer {
      * Thread execution is blocked until the connection is established or the timeout expires.
      * On fail HubProducerException will be thrown
      * @param configuration HubProducer configuration
-     * @param setup Initial message with action {@code HubMessage.Action.HUB_START}
      * @throws HubProducerException :configuration is null | invalid startup message | timeout expired
      */
-    public HubProducer(HubConfiguration configuration, HubMessage<String> setup) throws HubProducerException {
+    public HubProducer(HubConfiguration configuration) throws HubProducerException {
 
         if(configuration == null){
             throw new HubProducerException("Configuration is null");
@@ -63,7 +62,7 @@ public class HubProducer {
         var prop = configuration.getProperties();
         this.producer = new KafkaProducer<>(prop, new StringSerializer(), new HubMessageSerializer());
 
-        sendInitialMessage(setup);
+        sendInitialMessage();
 
         var hb = configuration.getHeartBeatPeriod();
         if(configuration.getHeartBeatPeriod() > 0){
@@ -73,27 +72,46 @@ public class HubProducer {
 
     /**
      * Thread execution is blocked until the connection is established or the timeout expires
-     * @param msg startup message
      * @throws HubProducerException failed to connect
      */
-    private void sendInitialMessage(HubMessage<String> msg) throws HubProducerException {
+    private void sendInitialMessage() throws HubProducerException {
 
-        if(msg == null || msg.getAction() == null || msg.getAction() != MessageAction.HUB_START){
-            throw new HubProducerException("Invalid startup message");
-        }
-
-        var callback = new HubProducerSendCallback();
+        var callback = new HubProducerSendCallback(MessageAction.HUB_START);
         try {
             logger.debug("Sending 'hub-start' message");
-            this.send(msg, callback).get();
+            this.send(
+                    MessageAction.HUB_START,
+                    new HubProperties(
+                            configuration.getHubName(),
+                            configuration.getHeartBeatPeriod(),
+                            configuration.getHeartBeatUnit().toString()
+                    ),
+                    callback
+            ).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new HubProducerException(e.getMessage());
         }
-
         if(callback.getException() != null){
             throw new HubProducerException(callback.getException().getMessage());
         }
     }
+
+    /**
+     * Sends 'device-connected' message
+     * @throws HubProducerException sending error
+     */
+    public void registerDevice(Device device) throws HubProducerException {
+        try {
+            this.send(
+                    MessageAction.DEVICE_CONNECTED,
+                    DTOFactory.getDeviceMetadata(device),
+                    new HubProducerSendCallback(MessageAction.DEVICE_CONNECTED)
+            );
+        } catch (HubProducerException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
 
     /**
      * Generates 'heart-beat' message; <br>
@@ -101,16 +119,7 @@ public class HubProducer {
      */
     private void sendHeartBeat(){
         try {
-            send(
-                    new HubMessage<>(configuration.getHubId(), MessageAction.HEART_BEAT, HearBeatData),
-                    (metadata, exception) -> {
-                        if(exception != null){
-                            logger.error(exception.getMessage());
-                        } else {
-                            logger.debug(String.format("HEART BEAT: %s; TS:%s", metadata.toString(), new Date(metadata.timestamp())));
-                        }
-                    }
-            );
+            send(MessageAction.HEART_BEAT, heartBeatData, new HubProducerSendCallback(MessageAction.HEART_BEAT));
         } catch (HubProducerException e) {
             logger.error(e.getMessage());
         }
@@ -121,21 +130,22 @@ public class HubProducer {
      *  Generate and asynchronously send record with specified {@link HubMessage} to kafka broker and
      *  invoke the provided callback when 'producer.send(record, callback)' has been acknowledged.
      *
-     * @param message message that will be sent
+     * @param action message action
+     * @param data data that will be sent
      * @param callback user callback (can be null)
      */
-    public Future<RecordMetadata> send(HubMessage<?> message, Callback callback) throws HubProducerException {
+    public Future<RecordMetadata> send(MessageAction action, Object data, Callback callback) throws HubProducerException {
 
-        if(message == null || message.getAction() == null){
+        if(action == null || data == null){
             throw new HubProducerException("Invalid message");
         }
 
-        var record = new ProducerRecord<>(
+        var record = new ProducerRecord<String, HubMessage<?>>(
                 configuration.getTopic(),
                 configuration.getTopicPartition(),
                 new Date().getTime(),
                 configuration.getRecordKey(),
-                HubMessageMapper.getMessage(message)
+                new HubMessage<>(configuration.getHubId(), action.name, data)
         );
 
         try {
@@ -145,19 +155,22 @@ public class HubProducer {
             throw new HubProducerException("Failed to send message; " + e.getMessage());
         }
     }
+    public void send(MessageAction action, Object data) throws HubProducerException {
+        send(action, data, new HubProducerSendCallback(action));
+    }
 
 
     /**
-     * Stop hub producer </br>
-     *
-     * @param data user data in the json format
-     * @param callback user callback on 'hub-off' message
+     * Stop hub producer
+     * @param reason shutdown reason
+     * @param details shutdown details
+     * @param callback user callback on 'hub-shutdown' message
      * @throws HubProducerException failed to stop KafkaProducer
      */
-    public void stop(String data, Callback callback) throws HubProducerException{
+    public void stop(String reason, String details, Callback callback) throws HubProducerException{
         try {
             scheduler.shutdown();
-            send(new HubMessage<>(configuration.getHubId(), MessageAction.HUB_OFF, data), callback);
+            send(MessageAction.HUB_OFF, new HubShutdownDetails(reason, details), callback);
             producer.flush();
             producer.close();
         } catch (Exception e) {

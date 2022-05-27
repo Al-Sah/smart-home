@@ -1,18 +1,17 @@
 package org.smarthome.sdk.module.consumer;
 
-import org.smarthome.sdk.models.DeviceData;
-import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.models.*;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 
 public interface HubMessagesHandler {
 
-    void onHubStart(HubMessage<String> message, Date timestamp, String hub);
-    void onHubOff(HubMessage<String> message, Date timestamp, String hub);
-    void onHeartBeat(HubMessage<String> message, Date timestamp, String hub);
-    void onHubMessage(HubMessage<String> message, Date timestamp, String hub);
-    void onDeviceMessage(HubMessage<List<DeviceData>> message, Date timestamp, String hub);
-    void onDevicesConnected(HubMessage<List<DeviceData>> message, Date timestamp, String hub);
-    void onDevicesDisconnected(HubMessage<List<DeviceData>> message, Date timestamp, String hub);
+    void onHubStart(HubMessage<HubProperties> message, Date timestamp);
+    void onHubOff(HubMessage<HubShutdownDetails> message, Date timestamp);
+    void onHeartBeat(HubMessage<String> message, Date timestamp);
+    void onHubMessage(HubMessage<String> message, Date timestamp);
+    void onDeviceMessage(HubMessage<DeviceMessage> message, Date timestamp);
+    void onDevicesConnected(HubMessage<DeviceMetadata> message, Date timestamp);
+    void onDevicesDisconnected(HubMessage<DeviceDisconnectionDetails> message, Date timestamp);
 }

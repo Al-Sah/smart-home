@@ -1,88 +1,57 @@
 package org.smarthome.sdk.models;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Send command to the device
- *
- * @author  Al-Sah
- */
 public class Command {
 
-    private String hub;
-    private String device;
-    private String task;
-    private long expiration;
+    private final String hub;
+    private final String device;
+    private final String component;
+    private final String property;
+    private final String options;
+    private final long expiration;
 
-    /**
-     * @param hub hub uuid
-     * @param device sensor/actuator uuid
-     * @param task data which be processed by specified actuator
-     * @param expiration task will be ignored after expiration time (since Unix Epoch); Set 0 to cancel expiration
-     * @throws IllegalArgumentException expiration time in past
-     */
-    public Command(String hub, String device, String task, long expiration) throws IllegalArgumentException {
+
+    @JsonCreator
+    public Command(
+            @JsonProperty("hub") String hub,
+            @JsonProperty("device") String device,
+            @JsonProperty("component") String component,
+            @JsonProperty("property") String property,
+            @JsonProperty("options") String options,
+            @JsonProperty("expire") long expiration) {
         this.hub = hub;
         this.device = device;
-        this.task = task;
-        if(expiration != 0 && System.currentTimeMillis() > expiration ){
-            throw new IllegalArgumentException("Invalid expiration time");
-        }
+        this.component = component;
+        this.property = property;
+        this.options = options;
         this.expiration = expiration;
     }
 
 
-    /**
-     *
-     * @param device actuator uuid
-     * @param task data which be processed by specified actuator
-     * @param expiration task will be ignored after expiration time (since Unix Epoch); Set 0 to cancel expiration
-     * @throws IllegalArgumentException expiration time in past
-     */
-    public Command(String hub, String device, String task, Date expiration) throws IllegalArgumentException{
-        this(hub, device, task, expiration.getTime());
+    public String getOptions() {
+        return options;
     }
 
-
-    /**
-     * Get time in future after specified number of seconds (since Unix Epoch)
-     * @param seconds number of seconds
-     */
-    public static long getFuture(int seconds){
-        // Convert seconds to milliseconds
-        return System.currentTimeMillis() + (seconds * 60000L);
+    public String getComponent() {
+        return component;
     }
-
 
     public String getHub() {
         return hub;
-    }
-
-    public void setHub(String hub) {
-        this.hub = hub;
     }
 
     public String getDevice() {
         return device;
     }
 
-    public void setDevice(String device) {
-        this.device = device;
-    }
-
-    public String getTask() {
-        return task;
-    }
-
-    public void setTask(String task) {
-        this.task = task;
+    public String getProperty() {
+        return property;
     }
 
     public long getExpiration() {
         return expiration;
     }
 
-    public void setExpiration(long expiration) {
-        this.expiration = expiration;
-    }
 }

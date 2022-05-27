@@ -1,15 +1,14 @@
 package org.smarthome.sdk.module.consumer.impl;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthome.sdk.models.DeviceData;
-import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.models.*;
 import org.smarthome.sdk.module.consumer.HubMessagesHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 
 @Component
 public class DefaultHubMessagesHandler implements HubMessagesHandler {
@@ -17,37 +16,37 @@ public class DefaultHubMessagesHandler implements HubMessagesHandler {
     private static final Logger logger = LoggerFactory.getLogger(DefaultHubMessagesHandler.class);
 
     @Override
-    public void onHubStart(HubMessage<String> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onHubStart(HubMessage<HubProperties> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onHubOff(HubMessage<String> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onHubOff(HubMessage<HubShutdownDetails> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onHeartBeat(HubMessage<String> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onHeartBeat(HubMessage<String> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onHubMessage(HubMessage<String> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onHubMessage(HubMessage<String> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onDeviceMessage(HubMessage<List<DeviceData>> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onDeviceMessage(HubMessage<DeviceMessage> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onDevicesConnected(HubMessage<List<DeviceData>> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onDevicesConnected(HubMessage<DeviceMetadata> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 
     @Override
-    public void onDevicesDisconnected(HubMessage<List<DeviceData>> message, Date timestamp, String hub) {
-        logger.info(String.format(" %s, %s, %s ", message.toString(), timestamp.toString(), hub));
+    public void onDevicesDisconnected(HubMessage<DeviceDisconnectionDetails> message, Date timestamp) {
+        logger.info(message.toString() + " | " + timestamp.toString());
     }
 }

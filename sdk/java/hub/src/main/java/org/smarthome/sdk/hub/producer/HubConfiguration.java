@@ -1,4 +1,4 @@
-package org.smarthome.sdk.hub;
+package org.smarthome.sdk.hub.producer;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +23,8 @@ public class HubConfiguration {
     private String recordKey;
     private Integer topicPartition;
 
+    private final String hubName;
+
     /**
      * Create safety producer configuration.
      * <p>Use this constructor to specify all fields overriding default values<p/>
@@ -32,13 +34,14 @@ public class HubConfiguration {
      *  properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");}
      * </pre>
      *
-     * @param topic         topic where all messages will be sent
-     * @param hubId         hub uuid; Cannot be changed after initialization
-     * @param properties    kafka properties.
-     * @param period        'heart beat' message period
-     * @param unit          'heart beat' time unit (Seconds/Minutes)
-     * @param key           ProducerRecord key (can be null)
-     * @param partition     ProducerRecord partition (can be null)
+     * @param name       hub name
+     * @param topic      topic where all messages will be sent
+     * @param hubId      hub uuid; Cannot be changed after initialization
+     * @param properties kafka properties.
+     * @param period     'heart beat' message period
+     * @param unit       'heart beat' time unit (Seconds/Minutes)
+     * @param partition  ProducerRecord partition (can be null)
+     * @param key        ProducerRecord key (can be null)
      * @throws IllegalArgumentException required params are invalid
      */
     public HubConfiguration(
@@ -48,8 +51,10 @@ public class HubConfiguration {
             Integer period,
             TimeUnit unit,
             Integer partition,
-            String key
-    ) throws IllegalArgumentException {
+            String key,
+            String name
+            ) throws IllegalArgumentException {
+        this.hubName = name;
         this.topic = topic;
         this.hubId = hubId;
         this.properties = properties;
@@ -63,17 +68,21 @@ public class HubConfiguration {
     /**
      * Create safety producer configuration. <br/>
      * Use this constructor to specify all required fields and use defaults in other
-     * @param topic         topic where all messages will be sent
-     * @param hubId         hub uuid; Cannot be changed after initialization
-     * @param properties    kafka properties.
+     *
+     * @param name       hub name
+     * @param topic      topic where all messages will be sent
+     * @param hubId      hub uuid; Cannot be changed after initialization
+     * @param properties kafka properties.
      * @throws IllegalArgumentException required params are invalid
      */
-    public HubConfiguration(String topic, String hubId, Properties properties) throws IllegalArgumentException {
+    public HubConfiguration(String topic, String hubId, Properties properties, String name) throws IllegalArgumentException {
+
         this.topic = topic;
         this.hubId = hubId;
         this.properties = properties;
         this.heartBeatPeriod = 1;
         this.heartBeatUnit = TimeUnit.MINUTES;
+        this.hubName = name;
         validate();
     }
 
@@ -95,6 +104,9 @@ public class HubConfiguration {
         }
         if(heartBeatUnit == null){
             sb.append("\nfield 'heart beat unit' is null");
+        }
+        if(hubName == null || hubName.isBlank()){
+            sb.append("\nfield 'hub-name' is null or blank");
         }
         var result = sb.toString();
         if(!result.isEmpty()){
@@ -123,6 +135,9 @@ public class HubConfiguration {
         return recordKey;
     }
 
+    public String getHubName() {
+        return hubName;
+    }
 
 
 

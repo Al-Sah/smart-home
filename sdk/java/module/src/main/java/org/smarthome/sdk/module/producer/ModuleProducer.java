@@ -2,8 +2,6 @@ package org.smarthome.sdk.module.producer;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.smarthome.sdk.models.Command;
-import org.smarthome.sdk.models.json.CommandMapper;
-import org.smarthome.sdk.models.json.JsonCommand;
 import org.springframework.kafka.core.KafkaSendCallback;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -16,30 +14,30 @@ import java.util.concurrent.TimeoutException;
 @Component
 public class ModuleProducer {
 
-    private final KafkaTemplate<String, JsonCommand> template;
+    private final KafkaTemplate<String, Command> template;
     private final ProducerProvider provider;
 
-    public ModuleProducer(KafkaTemplate<String, JsonCommand> template, ProducerProvider provider) {
+    public ModuleProducer(KafkaTemplate<String, Command> template, ProducerProvider provider) {
         this.template = template;
         this.provider = provider;
     }
 
 
-    public void sendAsync(final Command command) {
-        sendAsync(command, new CommandSendCallback());
+    public void sendAsync(final UserCommand userCommand) {
+        sendAsync(userCommand, new CommandSendCallback());
     }
 
-    public void sendAsync(final Command command, KafkaSendCallback<String, JsonCommand> callback) {
+    public void sendAsync(final UserCommand userCommand, KafkaSendCallback<String, Command> callback) {
 
-        var future = template.send(createRecord(provider, command));
+        var future = template.send(createRecord(provider, userCommand));
         future.addCallback(callback);
     }
 
 
-    public ProducerRecord<String, JsonCommand> sendSync(final Command command) throws RuntimeException {
+    public ProducerRecord<String, Command> sendSync(final UserCommand userCommand) throws RuntimeException {
         try {
             return template
-                    .send(createRecord(provider, command))
+                    .send(createRecord(provider, userCommand))
                     .get(20, TimeUnit.SECONDS)
                     .getProducerRecord();
         }
@@ -48,13 +46,13 @@ public class ModuleProducer {
         }
     }
 
-    private static ProducerRecord<String, JsonCommand> createRecord(ProducerProvider provider, Command command){
+
+    private static ProducerRecord<String, Command> createRecord(ProducerProvider provider, UserCommand userCommand){
         return new ProducerRecord<>(
                 provider.getTopic(),
                 provider.getPartition(),
                 new Date().getTime(),
                 provider.getKey(),
-                CommandMapper.getCommand(command)
-        );
+                new Command(null, null, null, null, null, 0));
     }
 }

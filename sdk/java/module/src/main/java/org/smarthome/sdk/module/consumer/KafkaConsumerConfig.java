@@ -1,7 +1,7 @@
 package org.smarthome.sdk.module.consumer;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.smarthome.sdk.models.json.JsonHubMessage;
+import org.smarthome.sdk.models.HubMessage;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +27,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, JsonHubMessage>> kafkaListenerContainerFactory() {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, JsonHubMessage>();
+    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, HubMessage<?>>> kafkaListenerContainerFactory() {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, HubMessage<?>>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
@@ -37,11 +37,11 @@ public class KafkaConsumerConfig {
      * Creates custom ConsumerFactory with specified properties
      */
     @Bean
-    public ConsumerFactory<String, JsonHubMessage> consumerFactory() {
+    public ConsumerFactory<String, HubMessage<?>> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(
                 properties.buildConsumerProperties(),
                 new StringDeserializer(),
-                new JsonDeserializer<>(JsonHubMessage.class)
+                new JsonDeserializer<>(HubMessage.class)
         );
     }
 }
