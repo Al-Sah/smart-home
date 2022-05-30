@@ -43,6 +43,10 @@ public class DTOFactory {
 
     private static Object generateConstraintDTO(PropertyConstraint constraint) throws RuntimeException{
 
+        if(constraint == null){
+            return null;
+        }
+
         if(constraint instanceof EnumValuesConstraint){
             var values = ((EnumValuesConstraint<?>) constraint).getValues();
             return new EnumConstraint(
