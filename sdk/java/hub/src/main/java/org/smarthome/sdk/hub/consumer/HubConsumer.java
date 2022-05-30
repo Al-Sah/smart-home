@@ -20,6 +20,8 @@ public class HubConsumer {
     private final Thread listener;
     private boolean isRunning = true;
 
+    private final Object lock = new Object();
+
     private static final Logger logger = LoggerFactory.getLogger(HubConsumer.class);
 
 
@@ -46,20 +48,25 @@ public class HubConsumer {
 
     private void readRecordsInWhileLoop(){
         while (isRunning) {
-            try {
-                ConsumerRecords<String, Command> records = consumer.poll(Duration.ofMillis(100));
-                for (ConsumerRecord<String, Command> record : records) {
-                    if(!Objects.equals(configuration.getHubId(), record.value().getHub())){
-                        continue;
+            synchronized(lock) {
+                try {
+                    ConsumerRecords<String, Command> records = consumer.poll(Duration.ofMillis(100));
+                    for (ConsumerRecord<String, Command> record : records) {
+                        if(!Objects.equals(configuration.getHubId(), record.value().getHub())){
+                            continue;
+                        }
+                        configuration.getCommandsHandler().handleCommand(record.value());
                     }
-                    configuration.getCommandsHandler().handleCommand(record.value());
+                }catch (Exception e){
+                    logger.error(e.getMessage());
                 }
-            }catch (Exception e){
-                logger.error(e.getMessage());
             }
         }
     }
 
+    /**
+     * Must be called just once.
+     */
     public void stop(){
 
         // prevent
@@ -67,10 +74,12 @@ public class HubConsumer {
             return;
         }
         isRunning = false;
-        try {
-            consumer.close();
-            listener.join(5000);
-        } catch (InterruptedException ignored) {
+
+        synchronized(lock) {
+            try {
+                consumer.close();
+                listener.join(5000);
+            } catch (InterruptedException ignored) {}
         }
     }
 
