@@ -1,4 +1,6 @@
-package org.smarthome.sdk.hub.device;
+package org.smarthome.sdk.hub.device.constraints;
+
+import org.smarthome.sdk.hub.device.PropertyConstraint;
 
 /**
  * @author Al-Sah

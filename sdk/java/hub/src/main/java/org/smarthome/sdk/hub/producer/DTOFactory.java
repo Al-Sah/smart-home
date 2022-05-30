@@ -2,6 +2,9 @@ package org.smarthome.sdk.hub.producer;
 
 import org.smarthome.sdk.hub.device.*;
 
+import org.smarthome.sdk.hub.device.constraints.EnumValuesConstraint;
+import org.smarthome.sdk.hub.device.constraints.FloatingPointConstraint;
+import org.smarthome.sdk.hub.device.constraints.IntegerNumberConstraint;
 import org.smarthome.sdk.models.ComponentMetadata;
 import org.smarthome.sdk.models.DeviceMetadata;
 import org.smarthome.sdk.models.DeviceProperty;
