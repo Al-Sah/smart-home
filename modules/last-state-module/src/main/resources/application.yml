@@ -1,0 +1,13 @@
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      client-id: test-hub1 #TODO
+      group-id: test-group1 #TODO
+    bootstrap-servers: localhost:9092
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: smarthome-last-state
