@@ -5,7 +5,6 @@ import org.smarthome.sdk.hub.device.*;
 import org.smarthome.sdk.models.ComponentMetadata;
 import org.smarthome.sdk.models.DeviceMetadata;
 import org.smarthome.sdk.models.DeviceProperty;
-import org.smarthome.sdk.models.constraints.ConstraintDTO;
 import org.smarthome.sdk.models.constraints.EnumConstraint;
 import org.smarthome.sdk.models.constraints.RangeConstraint;
 
@@ -26,7 +25,7 @@ public class DTOFactory {
 
     private static DeviceProperty generatePropertyDTO(DevicePropertyBase property){
 
-        ConstraintDTO constraint = null;
+        Object constraint = null;
         String value = null;
         if(property instanceof ConstantDeviceProperty){
             value = ((ConstantDeviceProperty<?>) property).getValue().toString();
@@ -39,7 +38,7 @@ public class DTOFactory {
     }
 
 
-    private static ConstraintDTO generateConstraintDTO(PropertyConstraint constraint) throws RuntimeException{
+    private static Object generateConstraintDTO(PropertyConstraint constraint) throws RuntimeException{
 
         if(constraint instanceof EnumValuesConstraint){
             var values = ((EnumValuesConstraint<?>) constraint).getValues();

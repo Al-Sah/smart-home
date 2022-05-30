@@ -1,5 +1,8 @@
 package org.smarthome.sdk.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class HubProperties {
 
     private final String name;
@@ -8,7 +11,11 @@ public class HubProperties {
 
     private final String unit;
 
-    public HubProperties(String name, Integer period, String unit) {
+    @JsonCreator
+    public HubProperties(
+            @JsonProperty("name") String name,
+            @JsonProperty("period")Integer period,
+            @JsonProperty("unit") String unit) {
         this.name = name;
         this.period = period;
         this.unit = unit;

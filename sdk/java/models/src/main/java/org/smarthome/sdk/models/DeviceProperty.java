@@ -3,7 +3,6 @@ package org.smarthome.sdk.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.smarthome.sdk.models.constraints.ConstraintDTO;
 
 public class DeviceProperty {
 
@@ -25,12 +24,12 @@ public class DeviceProperty {
     /**
      * Property constraint
      */
-    private final ConstraintDTO constraint;
+    private Object constraint;
 
     /**
      * Property value
      */
-    private final String value;
+    private String value;
 
 
     /**
@@ -45,7 +44,7 @@ public class DeviceProperty {
             @JsonProperty("name") String name,
             @JsonProperty("unit") String unit,
             @JsonProperty("description") String description,
-            @JsonProperty("constraint") ConstraintDTO constraint,
+            @JsonProperty("constraint") Object constraint,
             @JsonProperty("value") String value) {
         this.name = name;
         this.unit = unit;
@@ -70,8 +69,15 @@ public class DeviceProperty {
         return description;
     }
 
-    public ConstraintDTO getConstraint() {
+    public Object getConstraint() {
         return constraint;
     }
 
+    public void setConstraint(Object constraint) {
+        this.constraint = constraint;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }

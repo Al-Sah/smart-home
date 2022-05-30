@@ -2,6 +2,7 @@ package org.smarthome.sdk.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Model {@code HubMessage} is used to describe messages hub can produce according to the {@code MessageAction}.

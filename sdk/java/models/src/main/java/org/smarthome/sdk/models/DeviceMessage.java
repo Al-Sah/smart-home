@@ -1,5 +1,8 @@
 package org.smarthome.sdk.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class DeviceMessage {
 
     private final String device;
@@ -9,7 +12,13 @@ public class DeviceMessage {
     private final String error;
 
 
-    public DeviceMessage(String device, String component, String property, String value, String error) {
+    @JsonCreator
+    public DeviceMessage(
+            @JsonProperty("device") String device,
+            @JsonProperty("component") String component,
+            @JsonProperty("property") String property,
+            @JsonProperty("value") String value,
+            @JsonProperty("error") String error) {
         this.device = device;
         this.component = component;
         this.property = property;

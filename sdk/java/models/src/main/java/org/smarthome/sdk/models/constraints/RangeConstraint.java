@@ -4,7 +4,10 @@ package org.smarthome.sdk.models.constraints;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class RangeConstraint extends ConstraintDTO {
+public class RangeConstraint implements ConstraintDTO{
+
+
+    private final String type;
 
     /**
      * Minimum acceptable value
@@ -27,8 +30,7 @@ public class RangeConstraint extends ConstraintDTO {
             @JsonProperty("type") String type,
             @JsonProperty("min") String min,
             @JsonProperty("max") String max) {
-
-        super(type);
+        this.type = type;
         this.min = min;
         this.max = max;
     }
@@ -41,4 +43,8 @@ public class RangeConstraint extends ConstraintDTO {
         return max;
     }
 
+    @Override
+    public String getType() {
+        return type;
+    }
 }
