@@ -54,6 +54,11 @@ public abstract class Device {
 	 */
 	public abstract void execute(Command command);
 
+	/**
+	 * Stop receiving data from device. Use it to safely close connection between hub and device
+	 */
+	public abstract void stop();
+
 
 	public String getId() {
 		return id;
