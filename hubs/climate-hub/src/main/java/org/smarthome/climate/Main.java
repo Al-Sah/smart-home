@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -37,20 +38,32 @@ public class Main {
 
         var callback = new DeviceMessageCallback(producer);
 
-        var thermometer = new PlainThermometer(
-                "device1",
+        var thermometer1 = new PlainThermometer(
+                "device-plain-thermometer1",
                 TemperatureUnit.celsius,
                 -20,
                 40,
                 0.5D,
                 callback,
-                new ImitationPattern(1, 6, 2)
+                new ImitationPattern(2, 4, 1.5F, TimeUnit.SECONDS)
         );
-        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer)));
+
+        var thermometer2 = new PlainThermometer(
+                "device-plain-thermometer2",
+                TemperatureUnit.celsius,
+                -20,
+                40,
+                0.5D,
+                callback,
+                new ImitationPattern(1, 3, 1.5F, TimeUnit.SECONDS)
+        );
+
+        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1, thermometer2)));
 
 
         try {
-            producer.registerDevice(thermometer);
+            producer.registerDevice(thermometer1);
+            producer.registerDevice(thermometer2);
             producer.setHeartBeatData("1");
         } catch (HubProducerException e) {
             System.out.println(e.getMessage());
@@ -62,13 +75,17 @@ public class Main {
             System.in.read();
             System.out.println("Hub is shutting down ....");
 
-            thermometer.stop();
-            producer.send(MessageAction.DEVICE_DISCONNECTED, new DeviceDisconnectionDetails(
-                    thermometer.getId(),
-                    "hub is going to shutdown")
+            thermometer1.stop();
+            thermometer2.stop();
+            producer.send(MessageAction.DEVICE_DISCONNECTED,
+                    new DeviceDisconnectionDetails(thermometer1.getId(), "hub is going to shutdown")
+            );
+            producer.send(MessageAction.DEVICE_DISCONNECTED,
+                    new DeviceDisconnectionDetails(thermometer2.getId(), "hub is going to shutdown")
             );
 
             producer.stop("user requested shutdown", null, (event, ex)-> System.out.println(event));
+            consumer.stop();
 
         } catch (HubProducerException | IOException e) {
             throw new RuntimeException(e);

@@ -1,15 +1,13 @@
 package org.smarthome.climate;
 
 import org.smarthome.sdk.hub.device.*;
+import org.smarthome.sdk.hub.device.constraints.IntegerNumberConstraint;
 import org.smarthome.sdk.hub.producer.DeviceCallback;
 import org.smarthome.sdk.models.Command;
 import org.smarthome.sdk.models.DeviceType;
 
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import java.util.Timer;
 
 public class PlainThermometer extends Device {
 
@@ -17,13 +15,10 @@ public class PlainThermometer extends Device {
 
     private final WritableDeviceProperty<Float> sensorTemperature;
     private final IntegerNumberConstraint sensorValueBorders;
-
-    private final double sensitivity;
-
     private final Random random = new Random();
+    private final Timer timer = new Timer();
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
+    private final float sensitivity;
     private float lastSentValue;
 
     @SuppressWarnings("unchecked cast")
@@ -62,7 +57,7 @@ public class PlainThermometer extends Device {
                 },
                 callback);
 
-        this.sensitivity = sensitivity;
+        this.sensitivity = (float)sensitivity;
         this.sensorValueBorders = (IntegerNumberConstraint) components[0].getMainProperty().getConstraint();
         this.sensorTemperature = (WritableDeviceProperty<Float>) components[0].getMainProperty();
         this.pattern = pattern;
@@ -70,19 +65,19 @@ public class PlainThermometer extends Device {
         lastSentValue = unit == TemperatureUnit.celsius ? 17 + random.nextFloat() * 7 : 63 + random.nextFloat() * 10;
         sensorTemperature.setValue(lastSentValue);
 
-        scheduler.schedule(this::generateAndSendData, pattern.newTime(), TimeUnit.SECONDS);
+        timer.schedule(new DataImitationTask(timer, this::generateAndSendData, pattern), pattern.newTime());
     }
 
 
     private void generateAndSendData(){
 
-        var temp = sensorTemperature.getValue();
-        var max = temp + pattern.getMaxDifference()/2;
+        float temp = sensorTemperature.getValue();
+        float max = temp + pattern.getMaxDifference()/2;
         if(max > sensorValueBorders.getMax()){
             max = sensorValueBorders.getMax();
         }
 
-        var min = temp - pattern.getMaxDifference()/2;
+        float min = temp - pattern.getMaxDifference()/2;
         if(max < sensorValueBorders.getMin()){
             max = sensorValueBorders.getMin();
         }
@@ -90,15 +85,11 @@ public class PlainThermometer extends Device {
         float res = min + random.nextFloat() * (max - min);
         sensorTemperature.setValue(res);
 
-
-        if(res > temp ? res - temp > sensitivity : temp - res  > sensitivity){
+        if(Math.abs(res - temp) > sensitivity){
             callback.send(id, components[0].getId(), sensorTemperature.getName(), Float.toString(res), null);
             lastSentValue = res;
         }
-
-        scheduler.schedule(this::generateAndSendData, pattern.newTime(), TimeUnit.SECONDS);
     }
-
 
     @Override
     public void execute(Command command) {
@@ -106,7 +97,7 @@ public class PlainThermometer extends Device {
     }
 
     public void stop() {
-        scheduler.shutdown();
+        timer.cancel();
     }
 
 }
