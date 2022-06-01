@@ -68,7 +68,12 @@ public class ModuleConsumer {
                                 DeserializationUtils.getHubProperties((LinkedHashMap<String, Object>) message.getData())),
                         date
                 );
-                case HEART_BEAT -> handler.onHeartBeat((HubMessage<String>)message, date);
+                case HEART_BEAT -> handler.onHeartBeat(new HubMessage<>(
+                                message.getHub(),
+                                message.getAction(),
+                                DeserializationUtils.getHubHeartbeat((LinkedHashMap<String, Object>) message.getData())),
+                        date
+                );
                 case HUB_MESSAGE -> handler.onHubMessage((HubMessage<String>)message, date);
                 case DEVICE_CONNECTED -> handler.onDevicesConnected(
                         new HubMessage<>(

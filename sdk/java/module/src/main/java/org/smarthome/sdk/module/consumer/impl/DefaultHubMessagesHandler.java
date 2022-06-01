@@ -24,7 +24,7 @@ public class DefaultHubMessagesHandler implements HubMessagesHandler {
     }
 
     @Override
-    public void onHeartBeat(HubMessage<String> message, Date timestamp) {
+    public void onHeartBeat(HubMessage<HubHeartBeatData> message, Date timestamp) {
         logger.info(message.toString() + " | " + timestamp.toString());
     }
 

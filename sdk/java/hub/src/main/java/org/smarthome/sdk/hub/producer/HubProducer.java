@@ -8,10 +8,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.sdk.hub.device.Device;
-import org.smarthome.sdk.models.HubProperties;
-import org.smarthome.sdk.models.HubShutdownDetails;
-import org.smarthome.sdk.models.MessageAction;
-import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.models.*;
 
 import java.util.Date;
 import java.util.concurrent.*;
@@ -33,15 +30,14 @@ public class HubProducer {
 
     /**
      * Additional data can be sent on 'heart beat'
-     * Must be in JSON format
      */
-    private String heartBeatData;
+    private HubHeartBeatData heartBeatData;
 
     /**
      * @param heartBeatData data that will be sending in 'heart-beat' message;
      * This data is used by local thread
      */
-    public void setHeartBeatData(String heartBeatData) {
+    public void setHeartBeatData(HubHeartBeatData heartBeatData) {
         this.heartBeatData = heartBeatData;
     }
 

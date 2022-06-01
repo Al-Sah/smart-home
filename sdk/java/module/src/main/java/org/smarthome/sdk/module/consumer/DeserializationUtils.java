@@ -26,6 +26,10 @@ public class DeserializationUtils {
         return mapper.convertValue(map, new TypeReference<>() {});
     }
 
+    public static HubHeartBeatData getHubHeartbeat(LinkedHashMap<String, Object> map){
+        return mapper.convertValue(map, new TypeReference<>() {});
+    }
+
 
     public static HubProperties getHubProperties(LinkedHashMap<String, Object> map){
         return mapper.convertValue(map, new TypeReference<>() {});
