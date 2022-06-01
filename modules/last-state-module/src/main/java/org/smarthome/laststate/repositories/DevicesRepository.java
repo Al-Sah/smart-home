@@ -1,4 +1,4 @@
-package org.smarthome.laststate;
+package org.smarthome.laststate.repositories;
 
 import org.smarthome.sdk.models.DeviceMetadata;
 import org.springframework.data.mongodb.repository.MongoRepository;

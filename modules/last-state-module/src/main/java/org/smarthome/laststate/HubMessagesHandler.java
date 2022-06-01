@@ -3,22 +3,20 @@ package org.smarthome.laststate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.sdk.models.*;
-import org.smarthome.sdk.module.consumer.HubMessagesHandler;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Objects;
 
 @Primary
 @Service
-public class HubStateMessagesHandler implements HubMessagesHandler {
+public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.HubMessagesHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(HubStateMessagesHandler.class);
-    private final DevicesRepository devicesRepository;
+    private static final Logger logger = LoggerFactory.getLogger(HubMessagesHandler.class);
+    private final DataBaseManager dataBaseManager;
 
-    public HubStateMessagesHandler(DevicesRepository devicesRepository) {
-        this.devicesRepository = devicesRepository;
+    public HubMessagesHandler(DataBaseManager dataBaseManager) {
+        this.dataBaseManager = dataBaseManager;
     }
 
     @Override
@@ -37,19 +35,23 @@ public class HubStateMessagesHandler implements HubMessagesHandler {
     public void onDeviceMessage(HubMessage<DeviceMessage> hubMessage, Date date) {
         var msg = hubMessage.getData();
         if(msg.getError() != null){
+            dataBaseManager.saveDeviceError(msg);
+            // TODO send
             return;
         }
-        var id = hubMessage.getData().getDevice();
-        var device =  devicesRepository.findById(id).orElse(null);
 
-        if(device == null){
-            logger.error(String.format("Cannot find device '%s' !!!!", id));
+        try {
+            dataBaseManager.updateDevice(hubMessage.getData());
+            // TODO send
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
         }
     }
 
     @Override
     public void onDevicesConnected(HubMessage<DeviceMetadata> hubMessage, Date date) {
-        devicesRepository.save(hubMessage.getData());
+        dataBaseManager.saveDevice(hubMessage.getData());
+        // TODO send
     }
 
     @Override
