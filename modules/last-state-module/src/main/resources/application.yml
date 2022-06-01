@@ -11,3 +11,6 @@ spring:
       host: localhost
       port: 27017
       database: smarthome-last-state
+
+server:
+  port: 8083

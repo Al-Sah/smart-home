@@ -34,7 +34,10 @@ public class TestDevice extends Device {
                         null)
                 }, callback);
 
-        scheduler.scheduleAtFixedRate(this::imitateWork, 0, 80, TimeUnit.SECONDS);
+        var value = random.nextInt(100);
+        ((WritableDeviceProperty<Integer>)components[0].getMainProperty()).setValue(value);
+
+        scheduler.scheduleAtFixedRate(this::imitateWork, 5, 80, TimeUnit.SECONDS);
     }
 
     private void imitateWork(){

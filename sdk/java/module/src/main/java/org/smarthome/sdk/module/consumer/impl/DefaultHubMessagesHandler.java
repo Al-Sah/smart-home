@@ -1,6 +1,5 @@
 package org.smarthome.sdk.module.consumer.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.sdk.models.*;
@@ -8,7 +7,6 @@ import org.smarthome.sdk.module.consumer.HubMessagesHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.HashMap;
 
 @Component
 public class DefaultHubMessagesHandler implements HubMessagesHandler {

@@ -6,7 +6,6 @@ import org.smarthome.sdk.models.*;
 import org.smarthome.sdk.models.constraints.EnumConstraint;
 import org.smarthome.sdk.models.constraints.RangeConstraint;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 

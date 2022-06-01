@@ -3,7 +3,6 @@ package org.smarthome.sdk.module.consumer;
 import org.smarthome.sdk.models.*;
 
 import java.util.Date;
-import java.util.HashMap;
 
 public interface HubMessagesHandler {
 

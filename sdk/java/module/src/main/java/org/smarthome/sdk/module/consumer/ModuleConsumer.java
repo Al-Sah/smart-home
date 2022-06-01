@@ -2,7 +2,8 @@ package org.smarthome.sdk.module.consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthome.sdk.models.*;
+import org.smarthome.sdk.models.HubMessage;
+import org.smarthome.sdk.models.MessageAction;
 import org.smarthome.sdk.module.consumer.impl.DefaultHubMessagesHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Objects;
 
 @Component
 public class ModuleConsumer {
