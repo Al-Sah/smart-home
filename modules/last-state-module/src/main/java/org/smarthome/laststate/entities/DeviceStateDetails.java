@@ -28,6 +28,15 @@ public class DeviceStateDetails {
         this.lastUpdate = lastUpdate;
     }
 
+    public DeviceStateDetails(String owner, String id) {
+        this.owner = owner;
+        this.id = id;
+        this.active = null;
+        this.lastConnection = null;
+        this.lastDisconnection = null;
+        this.lastUpdate = null;
+    }
+
 
     public String getOwner() {
         return owner;

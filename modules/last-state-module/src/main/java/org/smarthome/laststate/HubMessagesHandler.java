@@ -3,9 +3,7 @@ package org.smarthome.laststate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.laststate.entities.DeviceStateDetails;
-import org.smarthome.laststate.models.DeviceConnectedMessage;
-import org.smarthome.laststate.models.DeviceDataMessage;
-import org.smarthome.laststate.models.DeviceDisconnectedMessage;
+import org.smarthome.laststate.models.*;
 import org.smarthome.sdk.models.*;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
 
     private static final Logger logger = LoggerFactory.getLogger(HubMessagesHandler.class);
     private final DataBaseManager dataBaseManager;
-
     private final ClientWebSocketHandler clientWebSocketHandler;
 
     public HubMessagesHandler(DataBaseManager dataBaseManager, ClientWebSocketHandler clientWebSocketHandler) {
@@ -27,16 +24,41 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     }
 
     @Override
-    public void onHubStart(HubMessage<HubProperties> hubMessage, Date date) {}
+    public void onHubStart(HubMessage<HubProperties> hubMessage, Date date) {
+        var res = dataBaseManager.setHubStateConnected(hubMessage.getHub());
+        try {
+            clientWebSocketHandler.sendMessage(new HubStateDetailsDTO(res));
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+        }
+        // TODO set timer to check hb
+    }
 
     @Override
-    public void onHubOff(HubMessage<HubShutdownDetails> hubMessage, Date date) {}
+    public void onHubOff(HubMessage<HubShutdownDetails> hubMessage, Date date) {
+        var hub = dataBaseManager.setHubStateDisconnected(hubMessage.getHub());
+        var details = dataBaseManager.removeActiveDevices(hubMessage.getHub());
+        try {
+            clientWebSocketHandler.sendMessage(
+                    new HubDisconnectedMessage(hubMessage.getData(), new HubStateDetailsDTO(hub), details)
+            );
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+        }
+    }
 
     @Override
-    public void onHeartBeat(HubMessage<String> hubMessage, Date date) {}
+    public void onHeartBeat(HubMessage<HubHeartBeatData> hubMessage, Date date) {}
 
     @Override
-    public void onHubMessage(HubMessage<String> hubMessage, Date date) {}
+    public void onHubMessage(HubMessage<String> hubMessage, Date date) {
+        var res = dataBaseManager.updateHubState(hubMessage.getData(), hubMessage.getHub());
+        try {
+            clientWebSocketHandler.sendMessage(new HubStateDetailsDTO(res));
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+        }
+    }
 
     @Override
     public void onDeviceMessage(HubMessage<DeviceMessage> hubMessage, Date date) {

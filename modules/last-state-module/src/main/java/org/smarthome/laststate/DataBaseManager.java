@@ -6,10 +6,7 @@ import org.smarthome.laststate.repositories.DevicesStateDetailsRepository;
 import org.smarthome.laststate.repositories.DevicesErrorsRepository;
 import org.smarthome.laststate.repositories.DevicesRepository;
 import org.smarthome.laststate.repositories.HubStateDetailsRepository;
-import org.smarthome.sdk.models.ComponentMetadata;
-import org.smarthome.sdk.models.DeviceDisconnectionDetails;
-import org.smarthome.sdk.models.DeviceMessage;
-import org.smarthome.sdk.models.DeviceMetadata;
+import org.smarthome.sdk.models.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -59,25 +56,65 @@ public class DataBaseManager {
             throw new RuntimeException("metadata is null");
         }
         devicesRepository.save(metadata);
-        var state = devicesStateDetailsRepository.findById(metadata.getId()).orElse(null);
+        var state = devicesStateDetailsRepository.findById(metadata.getId())
+                .orElse(new DeviceStateDetails(hub, metadata.getId()));
 
-        if(state == null){
-            state = new DeviceStateDetails(hub, metadata.getId(), true, System.currentTimeMillis(), null, null);
-        }else {
-            state.setActive(true);
-            state.setLastConnection(System.currentTimeMillis());
-        }
+        
+        state.setActive(true);
+        state.setLastUpdate(System.currentTimeMillis());
+        state.setLastConnection(System.currentTimeMillis());
+        
         devicesStateDetailsRepository.save(state);
         return state;
     }
 
     public DeviceStateDetails saveDeviceError(DeviceMessage msg){
         if(msg == null){
-            throw new RuntimeException("message s null");
+            throw new RuntimeException("message is null");
         }
         devicesErrorsRepository.save(msg);
         return updateDeviceState(msg.getDevice());
     }
+
+
+    public HubStateDetails setHubStateConnected(String id){
+        var hub =  hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+        hub.setActive(true);
+        hub.setLastConnection(System.currentTimeMillis());
+        hub.setLastUpdate(System.currentTimeMillis());
+        hubStateDetailsRepository.save(hub);
+        return hub;
+    }
+
+    public HubStateDetails updateHubState(String msg, String id){
+        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+        hub.setActive(true);
+        hub.setLastUpdate(System.currentTimeMillis());
+        hub.setLastMessage(msg);
+        hubStateDetailsRepository.save(hub);
+        return hub;
+    }
+
+    public HubStateDetails setHubStateDisconnected(String id){
+        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+        hub.setActive(false);
+        hub.setLastUpdate(System.currentTimeMillis());
+        hub.setLastDisconnection(System.currentTimeMillis());
+        hubStateDetailsRepository.save(hub);
+        return hub;
+    }
+
+    public List<DeviceStateDetails> removeActiveDevices(String hubId){
+        var devices = devicesStateDetailsRepository.findAllByOwnerAndActive(hubId, true);
+
+        for (DeviceStateDetails device : devices) {
+            device.setActive(false);
+            device.setLastDisconnection(System.currentTimeMillis());
+        }
+        devicesStateDetailsRepository.saveAll(devices);
+        return devices;
+    }
+    
 
     public DeviceStateDetails updateDevice(DeviceMessage msg){
 
@@ -109,6 +146,7 @@ public class DataBaseManager {
                 ()-> new RuntimeException(String.format("DeviceDeletes '%s' not found", id))
         );
         state.setActive(false);
+        state.setLastUpdate(System.currentTimeMillis());
         state.setLastDisconnection(System.currentTimeMillis());
         devicesStateDetailsRepository.save(state);
         return state;
@@ -119,11 +157,8 @@ public class DataBaseManager {
         var state = devicesStateDetailsRepository.findById(id).orElseThrow(
                 ()-> new RuntimeException(String.format("DeviceDeletes '%s' not found", id))
         );
-
-
         state.setActive(true);
         state.setLastUpdate(System.currentTimeMillis());
-
         devicesStateDetailsRepository.save(state);
         return state;
     }

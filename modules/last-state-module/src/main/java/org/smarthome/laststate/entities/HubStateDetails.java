@@ -27,6 +27,15 @@ public class HubStateDetails {
         this.lastMessage = lastMessage;
     }
 
+    public HubStateDetails(String id) {
+        this.id = id;
+        this.active = null;
+        this.lastConnection = null;
+        this.lastDisconnection = null;
+        this.lastUpdate = null;
+        this.lastMessage = null;
+    }
+
     public String getId() {
         return id;
     }
