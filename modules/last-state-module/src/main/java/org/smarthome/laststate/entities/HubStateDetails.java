@@ -1,5 +1,8 @@
 package org.smarthome.laststate.entities;
 
+
+import org.springframework.data.annotation.PersistenceCreator;
+
 public class HubStateDetails {
 
     private String id;
@@ -17,7 +20,7 @@ public class HubStateDetails {
 
     private String lastMessage;
 
-
+    @PersistenceCreator
     public HubStateDetails(String id, Boolean active, Long lastConnection, Long lastDisconnection, Long lastUpdate, String lastMessage) {
         this.id = id;
         this.active = active;

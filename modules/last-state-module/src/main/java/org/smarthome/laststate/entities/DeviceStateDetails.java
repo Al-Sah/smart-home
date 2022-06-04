@@ -1,5 +1,8 @@
 package org.smarthome.laststate.entities;
 
+
+import org.springframework.data.annotation.PersistenceCreator;
+
 public class DeviceStateDetails {
 
     // hub-id
@@ -18,7 +21,7 @@ public class DeviceStateDetails {
     // ts (last any info: data or error)
     private Long lastUpdate;
 
-
+    @PersistenceCreator
     public DeviceStateDetails(String owner, String id, Boolean active, Long lastConnection, Long lastDisconnection, Long lastUpdate) {
         this.owner = owner;
         this.id = id;
