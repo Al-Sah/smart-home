@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
 @Service
 public class DataBaseManager {
 
@@ -110,6 +109,17 @@ public class DataBaseManager {
         for (DeviceStateDetails device : devices) {
             device.setActive(false);
             device.setLastDisconnection(System.currentTimeMillis());
+        }
+        devicesStateDetailsRepository.saveAll(devices);
+        return devices;
+    }
+
+    public List<DeviceStateDetails> updateActiveDevices(String hubId, String[] active){
+        var activeDevices = Arrays.asList(active);
+        var devices = devicesStateDetailsRepository.findAllByOwner(hubId);
+
+        for (DeviceStateDetails device : devices) {
+            device.setActive(activeDevices.contains(device.getId()));
         }
         devicesStateDetailsRepository.saveAll(devices);
         return devices;

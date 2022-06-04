@@ -8,5 +8,6 @@ import java.util.List;
 public interface DevicesStateDetailsRepository extends MongoRepository<DeviceStateDetails, String> {
 
     List<DeviceStateDetails> findAllByOwnerAndActive(String owner, Boolean active);
+    List<DeviceStateDetails> findAllByOwner(String owner);
 
 }
