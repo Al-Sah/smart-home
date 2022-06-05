@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class HubProperties {
 
+    private final String id;
     private final String name;
 
     private final Integer period;
@@ -13,9 +14,11 @@ public class HubProperties {
 
     @JsonCreator
     public HubProperties(
+            @JsonProperty("id") String id,
             @JsonProperty("name") String name,
             @JsonProperty("period")Integer period,
             @JsonProperty("unit") String unit) {
+        this.id = id;
         this.name = name;
         this.period = period;
         this.unit = unit;

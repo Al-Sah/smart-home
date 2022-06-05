@@ -78,6 +78,7 @@ public class HubProducer {
             this.send(
                     MessageAction.HUB_START,
                     new HubProperties(
+                            configuration.getHubId(),
                             configuration.getHubName(),
                             configuration.getHeartBeatPeriod(),
                             configuration.getHeartBeatUnit().toString()
