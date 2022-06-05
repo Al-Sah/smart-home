@@ -4,6 +4,10 @@ import lombok.NonNull;
 import lombok.Value;
 import org.smarthome.laststate.entities.DeviceState;
 
+/**
+ * @author Al-Sah
+ * @see org.smarthome.laststate.entities.DeviceState
+ */
 @Value public class DeviceStateDTO {
 
     @NonNull String id;

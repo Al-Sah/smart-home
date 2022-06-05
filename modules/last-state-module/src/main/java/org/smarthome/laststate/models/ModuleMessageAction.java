@@ -1,5 +1,11 @@
 package org.smarthome.laststate.models;
 
+/**
+ * {@code ModuleMessageAction} contains all possible events to be used in {@link ModuleMessage}
+ *
+ * @author Al-Sah
+ * @see org.smarthome.laststate.models.ModuleMessage
+ */
 public enum ModuleMessageAction {
 
     START,

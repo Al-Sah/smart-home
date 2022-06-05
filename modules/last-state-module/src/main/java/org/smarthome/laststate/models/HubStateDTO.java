@@ -4,11 +4,16 @@ import lombok.NonNull;
 import lombok.Value;
 import org.smarthome.laststate.entities.HubState;
 
+/**
+ * @author Al-Sah
+ * @see org.smarthome.laststate.entities.HubState
+ */
 @Value public class HubStateDTO {
 
     @NonNull String id;
     @NonNull Boolean active;
-    @NonNull String lastMessage;
+
+    String lastMessage;
 
     Long lastConnection;
     Long lastDisconnection;
