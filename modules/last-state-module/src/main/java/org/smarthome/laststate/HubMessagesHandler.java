@@ -2,7 +2,7 @@ package org.smarthome.laststate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthome.laststate.entities.DeviceStateDetails;
+import org.smarthome.laststate.entities.DeviceState;
 import org.smarthome.laststate.models.*;
 import org.smarthome.sdk.models.*;
 import org.springframework.context.annotation.Primary;
@@ -36,7 +36,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
         try {
             clientWebSocketHandler.sendMessage(
                     ModuleMessageAction.HUB_CONNECTED,
-                    new HubConnected(new HubStateDetailsDTO(res), hubMessage.getData())
+                    new HubConnected(hubMessage.getData(), new HubStateDTO(res))
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
@@ -57,8 +57,8 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                     ModuleMessageAction.HUB_DISCONNECTED,
                     new HubDisconnectedMessage(
                             hubMessage.getData(),
-                            new HubStateDetailsDTO(hub),
-                            removedDevices.stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList())
+                            new HubStateDTO(hub),
+                            removedDevices.stream().map(DeviceStateDTO::new).collect(Collectors.toList())
                     )
             );
         } catch (RuntimeException e) {
@@ -89,7 +89,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onHubMessage(HubMessage<String> hubMessage, Date date) {
         var res = dataBaseManager.updateHubState(hubMessage.getData(), hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_MESSAGE, new HubStateDetailsDTO(res));
+            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_MESSAGE, new HubStateDTO(res));
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -98,7 +98,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     @Override
     public void onDeviceMessage(HubMessage<DeviceMessage> hubMessage, Date date) {
         var msg = hubMessage.getData();
-        DeviceStateDetails state = null;
+        DeviceState state;
         if(msg.getError() != null){
             state = dataBaseManager.saveDeviceError(msg);
         }else{
@@ -113,7 +113,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
         try {
             clientWebSocketHandler.sendMessage(
                     ModuleMessageAction.DEVICE_MESSAGE,
-                    new DeviceDataMessage(msg, new DeviceStateDetailsDTO(state))
+                    new DeviceDataMessage(msg, new DeviceStateDTO(state))
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
@@ -126,7 +126,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
             var res = dataBaseManager.saveDevice(hubMessage.getData(), hubMessage.getHub());
             clientWebSocketHandler.sendMessage(
                     ModuleMessageAction.DEVICE_CONNECTED,
-                    new DeviceConnectedMessage(hubMessage.getData(), new DeviceStateDetailsDTO(res))
+                    new DeviceConnectedMessage(hubMessage.getData(), new DeviceStateDTO(res))
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
@@ -141,7 +141,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                     ModuleMessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectedMessage(
                             hubMessage.getData(),
-                            new DeviceStateDetailsDTO(res)
+                            new DeviceStateDTO(res)
                     )
             );
         } catch (RuntimeException e) {
@@ -159,7 +159,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
             if(hb.getLastHeatBeat() > hb.getNextHeatBeat()){
                 var hub= dataBaseManager.setHubStateLost(id);
                 var details = dataBaseManager.removeActiveDevices(id)
-                        .stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList());
+                        .stream().map(DeviceStateDTO::new).collect(Collectors.toList());
                 clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_LOST, new HubLostMessage(hub, details));
             }
         }

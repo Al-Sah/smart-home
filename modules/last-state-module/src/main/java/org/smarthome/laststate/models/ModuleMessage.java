@@ -1,5 +1,8 @@
 package org.smarthome.laststate.models;
 
+import lombok.Getter;
+
+@Getter
 public class ModuleMessage<T> {
 
     private final ModuleMessageAction action;
@@ -9,13 +12,5 @@ public class ModuleMessage<T> {
     public ModuleMessage(ModuleMessageAction action, T data) {
         this.action = action;
         this.data = data;
-    }
-
-    public ModuleMessageAction getAction() {
-        return action;
-    }
-
-    public T getData() {
-        return data;
     }
 }

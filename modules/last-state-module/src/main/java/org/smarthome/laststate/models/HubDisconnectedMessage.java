@@ -1,36 +1,25 @@
 package org.smarthome.laststate.models;
 
+import lombok.Getter;
 import org.smarthome.sdk.models.HubShutdownDetails;
 
 import java.util.List;
 
+@Getter
 public class HubDisconnectedMessage {
 
     private final HubShutdownDetails shutdownDetails;
 
-    private final HubStateDetailsDTO stateDetails;
+    private final HubStateDTO hubState;
 
-    private final List<DeviceStateDetailsDTO> devices;
+    private final List<DeviceStateDTO> devices;
 
     public HubDisconnectedMessage(
             HubShutdownDetails shutdownDetails,
-            HubStateDetailsDTO stateDetails,
-            List<DeviceStateDetailsDTO> devices) {
+            HubStateDTO hubState,
+            List<DeviceStateDTO> devices) {
         this.shutdownDetails = shutdownDetails;
-        this.stateDetails = stateDetails;
+        this.hubState = hubState;
         this.devices = devices;
-    }
-
-
-    public HubShutdownDetails getShutdownDetails() {
-        return shutdownDetails;
-    }
-
-    public HubStateDetailsDTO getStateDetails() {
-        return stateDetails;
-    }
-
-    public List<DeviceStateDetailsDTO> getDevices() {
-        return devices;
     }
 }

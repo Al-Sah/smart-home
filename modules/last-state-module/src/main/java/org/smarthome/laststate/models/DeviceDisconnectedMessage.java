@@ -1,26 +1,16 @@
 package org.smarthome.laststate.models;
 
-import org.smarthome.laststate.entities.DeviceStateDetails;
+import lombok.Getter;
 import org.smarthome.sdk.models.DeviceDisconnectionDetails;
 
-
-
+@Getter
 public class DeviceDisconnectedMessage {
 
     private final DeviceDisconnectionDetails details;
-    private final DeviceStateDetailsDTO deviceStateDetails;
+    private final DeviceStateDTO state;
 
-    public DeviceDisconnectedMessage(DeviceDisconnectionDetails details, DeviceStateDetailsDTO deviceStateDetails) {
+    public DeviceDisconnectedMessage(DeviceDisconnectionDetails details, DeviceStateDTO state) {
         this.details = details;
-        this.deviceStateDetails = deviceStateDetails;
-    }
-
-
-    public DeviceDisconnectionDetails getDetails() {
-        return details;
-    }
-
-    public DeviceStateDetailsDTO getDeviceStateDetails() {
-        return deviceStateDetails;
+        this.state = state;
     }
 }

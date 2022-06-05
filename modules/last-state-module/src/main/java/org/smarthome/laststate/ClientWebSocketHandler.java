@@ -51,12 +51,12 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
         try {
             sendMessage(
                     ModuleMessageAction.START,
-                    new ClientStartMessage(
+                    new StartMessage(
                             dbManager.getAllDevices(),
                             dbManager.getAllDevicesErrors(),
-                            dbManager.getAllDevicesState().stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList()),
-                            dbManager.getAllHubsState().stream().map(HubStateDetailsDTO::new).collect(Collectors.toList())
-                            )
+                            dbManager.getAllDevicesState().stream().map(DeviceStateDTO::new).collect(Collectors.toList()),
+                            dbManager.getAllHubsState().stream().map(HubStateDTO::new).collect(Collectors.toList())
+                    )
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());

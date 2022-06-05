@@ -1,22 +1,16 @@
 package org.smarthome.laststate.models;
 
+import lombok.Getter;
 import org.smarthome.sdk.models.DeviceMetadata;
 
+@Getter
 public class DeviceConnectedMessage {
 
     private final DeviceMetadata metadata;
-    private final DeviceStateDetailsDTO stateDetails;
+    private final DeviceStateDTO state;
 
-    public DeviceConnectedMessage(DeviceMetadata metadata, DeviceStateDetailsDTO stateDetails) {
+    public DeviceConnectedMessage(DeviceMetadata metadata, DeviceStateDTO state) {
         this.metadata = metadata;
-        this.stateDetails = stateDetails;
-    }
-
-    public DeviceMetadata getMetadata() {
-        return metadata;
-    }
-
-    public DeviceStateDetailsDTO getStateDetails() {
-        return stateDetails;
+        this.state = state;
     }
 }

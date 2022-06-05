@@ -1,11 +1,11 @@
 package org.smarthome.laststate;
 
-import org.smarthome.laststate.entities.HubStateDetails;
-import org.smarthome.laststate.entities.DeviceStateDetails;
-import org.smarthome.laststate.repositories.DevicesStateDetailsRepository;
+import org.smarthome.laststate.entities.HubState;
+import org.smarthome.laststate.entities.DeviceState;
+import org.smarthome.laststate.repositories.DevicesStateRepository;
 import org.smarthome.laststate.repositories.DevicesErrorsRepository;
 import org.smarthome.laststate.repositories.DevicesRepository;
-import org.smarthome.laststate.repositories.HubStateDetailsRepository;
+import org.smarthome.laststate.repositories.HubStateRepository;
 import org.smarthome.sdk.models.*;
 import org.springframework.stereotype.Service;
 
@@ -17,19 +17,19 @@ public class DataBaseManager {
 
     private final DevicesRepository devicesRepository;
     private final DevicesErrorsRepository devicesErrorsRepository;
-    private final DevicesStateDetailsRepository devicesStateDetailsRepository;
-    private final HubStateDetailsRepository hubStateDetailsRepository;
+    private final DevicesStateRepository devicesStateRepository;
+    private final HubStateRepository hubStateRepository;
 
 
     public DataBaseManager(
             DevicesRepository devicesRepository,
             DevicesErrorsRepository devicesErrorsRepository,
-            DevicesStateDetailsRepository devicesStateDetailsRepository,
-            HubStateDetailsRepository hubStateDetailsRepository) {
+            DevicesStateRepository devicesStateRepository,
+            HubStateRepository hubStateRepository) {
         this.devicesRepository = devicesRepository;
         this.devicesErrorsRepository = devicesErrorsRepository;
-        this.devicesStateDetailsRepository = devicesStateDetailsRepository;
-        this.hubStateDetailsRepository = hubStateDetailsRepository;
+        this.devicesStateRepository = devicesStateRepository;
+        this.hubStateRepository = hubStateRepository;
     }
 
 
@@ -41,33 +41,33 @@ public class DataBaseManager {
         return devicesErrorsRepository.findAll();
     }
 
-    public List<DeviceStateDetails> getAllDevicesState(){
-        return devicesStateDetailsRepository.findAll();
+    public List<DeviceState> getAllDevicesState(){
+        return devicesStateRepository.findAll();
     }
 
-    public List<HubStateDetails> getAllHubsState(){
-        return hubStateDetailsRepository.findAll();
+    public List<HubState> getAllHubsState(){
+        return hubStateRepository.findAll();
     }
 
 
-    public DeviceStateDetails saveDevice(DeviceMetadata metadata, String hub){
+    public DeviceState saveDevice(DeviceMetadata metadata, String hub){
         if(metadata == null){
             throw new RuntimeException("metadata is null");
         }
         devicesRepository.save(metadata);
-        var state = devicesStateDetailsRepository.findById(metadata.getId())
-                .orElse(new DeviceStateDetails(hub, metadata.getId()));
+        var state = devicesStateRepository.findById(metadata.getId())
+                .orElse(new DeviceState(metadata.getId(), hub));
 
         
         state.setActive(true);
         state.setLastUpdate(System.currentTimeMillis());
         state.setLastConnection(System.currentTimeMillis());
         
-        devicesStateDetailsRepository.save(state);
+        devicesStateRepository.save(state);
         return state;
     }
 
-    public DeviceStateDetails saveDeviceError(DeviceMessage msg){
+    public DeviceState saveDeviceError(DeviceMessage msg){
         if(msg == null){
             throw new RuntimeException("message is null");
         }
@@ -76,64 +76,64 @@ public class DataBaseManager {
     }
 
 
-    public HubStateDetails setHubStateConnected(String id){
-        var hub =  hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+    public HubState setHubStateConnected(String id){
+        var hub =  hubStateRepository.findById(id).orElse(new HubState(id));
         hub.setActive(true);
         hub.setLastConnection(System.currentTimeMillis());
         hub.setLastUpdate(System.currentTimeMillis());
-        hubStateDetailsRepository.save(hub);
+        hubStateRepository.save(hub);
         return hub;
     }
 
-    public HubStateDetails updateHubState(String msg, String id){
-        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+    public HubState updateHubState(String msg, String id){
+        var hub = hubStateRepository.findById(id).orElse(new HubState(id));
         hub.setActive(true);
         hub.setLastUpdate(System.currentTimeMillis());
         hub.setLastMessage(msg);
-        hubStateDetailsRepository.save(hub);
+        hubStateRepository.save(hub);
         return hub;
     }
 
-    public HubStateDetails setHubStateDisconnected(String id){
-        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+    public HubState setHubStateDisconnected(String id){
+        var hub = hubStateRepository.findById(id).orElse(new HubState(id));
         hub.setActive(false);
         hub.setLastUpdate(System.currentTimeMillis());
         hub.setLastDisconnection(System.currentTimeMillis());
-        hubStateDetailsRepository.save(hub);
+        hubStateRepository.save(hub);
         return hub;
     }
 
-    public HubStateDetails setHubStateLost(String id){
-        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+    public HubState setHubStateLost(String id){
+        var hub = hubStateRepository.findById(id).orElse(new HubState(id));
         hub.setActive(false);
-        hubStateDetailsRepository.save(hub);
+        hubStateRepository.save(hub);
         return hub;
     }
 
-    public List<DeviceStateDetails> removeActiveDevices(String hubId){
-        var devices = devicesStateDetailsRepository.findAllByOwnerAndActive(hubId, true);
+    public List<DeviceState> removeActiveDevices(String hubId){
+        var devices = devicesStateRepository.findAllByOwnerAndActive(hubId, true);
 
-        for (DeviceStateDetails device : devices) {
+        for (DeviceState device : devices) {
             device.setActive(false);
             device.setLastDisconnection(System.currentTimeMillis());
         }
-        devicesStateDetailsRepository.saveAll(devices);
+        devicesStateRepository.saveAll(devices);
         return devices;
     }
 
-    public List<DeviceStateDetails> updateActiveDevices(String hubId, String[] active){
+    public List<DeviceState> updateActiveDevices(String hubId, String[] active){
         var activeDevices = Arrays.asList(active);
-        var devices = devicesStateDetailsRepository.findAllByOwner(hubId);
+        var devices = devicesStateRepository.findAllByOwner(hubId);
 
-        for (DeviceStateDetails device : devices) {
+        for (DeviceState device : devices) {
             device.setActive(activeDevices.contains(device.getId()));
         }
-        devicesStateDetailsRepository.saveAll(devices);
+        devicesStateRepository.saveAll(devices);
         return devices;
     }
     
 
-    public DeviceStateDetails updateDevice(DeviceMessage msg){
+    public DeviceState updateDevice(DeviceMessage msg){
 
         var device =  devicesRepository.findById(msg.getDevice()).orElseThrow(
                 ()-> new RuntimeException(String.format("Device '%s' not found", msg.getDevice()))
@@ -157,26 +157,26 @@ public class DataBaseManager {
 
 
 
-    public DeviceStateDetails updateDeviceState(DeviceDisconnectionDetails disconnectionDetails) throws RuntimeException{
+    public DeviceState updateDeviceState(DeviceDisconnectionDetails disconnectionDetails) throws RuntimeException{
         var id= disconnectionDetails.getDeviceId();
-        var state = devicesStateDetailsRepository.findById(id).orElseThrow(
+        var state = devicesStateRepository.findById(id).orElseThrow(
                 ()-> new RuntimeException(String.format("DeviceDeletes '%s' not found", id))
         );
         state.setActive(false);
         state.setLastUpdate(System.currentTimeMillis());
         state.setLastDisconnection(System.currentTimeMillis());
-        devicesStateDetailsRepository.save(state);
+        devicesStateRepository.save(state);
         return state;
     }
 
-    private DeviceStateDetails updateDeviceState(String id) throws RuntimeException{
+    private DeviceState updateDeviceState(String id) throws RuntimeException{
 
-        var state = devicesStateDetailsRepository.findById(id).orElseThrow(
+        var state = devicesStateRepository.findById(id).orElseThrow(
                 ()-> new RuntimeException(String.format("DeviceDeletes '%s' not found", id))
         );
         state.setActive(true);
         state.setLastUpdate(System.currentTimeMillis());
-        devicesStateDetailsRepository.save(state);
+        devicesStateRepository.save(state);
         return state;
     }
 
