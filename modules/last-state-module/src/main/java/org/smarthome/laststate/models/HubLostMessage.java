@@ -2,15 +2,16 @@ package org.smarthome.laststate.models;
 
 import lombok.NonNull;
 import lombok.Value;
-import org.smarthome.laststate.entities.HubState;
-
 import java.util.List;
 
-@Value
-public class HubLostMessage {
 
-    @NonNull HubState hubState;
+@Value public class HubLostMessage {
 
-    // can be null
+    @NonNull HubStateDTO hubState;
+
+    /**
+     * List of devices which were associated with hub now marked as inactive. <br>
+     * Lost (disconnected) hubs cannot have active devices
+     */
     List<DeviceStateDTO> devices;
 }

@@ -110,7 +110,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
             }
         }
 
-        try {
+        try { //TODO fix error // info ???
             clientWebSocketHandler.sendMessage(
                     ModuleMessageAction.DEVICE_MESSAGE,
                     new DeviceDataMessage(msg, new DeviceStateDTO(state))
@@ -160,7 +160,10 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                 var hub= dataBaseManager.setHubStateLost(id);
                 var details = dataBaseManager.removeActiveDevices(id)
                         .stream().map(DeviceStateDTO::new).collect(Collectors.toList());
-                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_LOST, new HubLostMessage(hub, details));
+                clientWebSocketHandler.sendMessage(
+                        ModuleMessageAction.HUB_LOST,
+                        new HubLostMessage(new HubStateDTO(hub), details)
+                );
             }
         }
     }
