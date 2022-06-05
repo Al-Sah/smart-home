@@ -2,36 +2,33 @@ package org.smarthome.laststate;
 
 public class HeartBeatDetails {
 
-    private final Long HeatBeatPeriod; // in ms
+    public static final Integer HEART_BEAT_MAX_LATENCY = 2000;
+    private final Long period; // in ms
     private Long lastHeatBeat; // in ms
-    private Long nextHeatBeat; // in ms  (with latency)
+    private Long nextHeatBeat; // in ms  (including latency)
 
 
-    public HeartBeatDetails(Long heatBeatPeriod, Long lastHeatBeat, Long nextHeatBeat) {
-        HeatBeatPeriod = heatBeatPeriod;
-        this.lastHeatBeat = lastHeatBeat;
-        this.nextHeatBeat = nextHeatBeat;
+    public HeartBeatDetails(Long heatBeatPeriod, Long lastHeatBeat) {
+        period = heatBeatPeriod;
+        moveToNextPeriod(lastHeatBeat);
     }
 
 
-    public Long getHeatBeatPeriod() {
-        return HeatBeatPeriod;
+    public Long getPeriod() {
+        return period;
     }
 
     public Long getLastHeatBeat() {
         return lastHeatBeat;
     }
 
-    public void setLastHeatBeat(Long lastHeatBeat) {
-        this.lastHeatBeat = lastHeatBeat;
-    }
-
     public Long getNextHeatBeat() {
         return nextHeatBeat;
     }
 
-    public void setNextHeatBeat(Long nextHeatBeat) {
-        this.nextHeatBeat = nextHeatBeat;
+    public void moveToNextPeriod(Long last) {
+        this.lastHeatBeat = last;
+        this.nextHeatBeat = last + period + HEART_BEAT_MAX_LATENCY;
     }
 
 }

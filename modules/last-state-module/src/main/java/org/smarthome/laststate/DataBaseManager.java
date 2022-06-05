@@ -103,6 +103,13 @@ public class DataBaseManager {
         return hub;
     }
 
+    public HubStateDetails setHubStateLost(String id){
+        var hub = hubStateDetailsRepository.findById(id).orElse(new HubStateDetails(id));
+        hub.setActive(false);
+        hubStateDetailsRepository.save(hub);
+        return hub;
+    }
+
     public List<DeviceStateDetails> removeActiveDevices(String hubId){
         var devices = devicesStateDetailsRepository.findAllByOwnerAndActive(hubId, true);
 

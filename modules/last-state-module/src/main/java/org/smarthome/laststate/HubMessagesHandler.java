@@ -8,18 +8,15 @@ import org.smarthome.sdk.models.*;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Primary
 @Service
 public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.HubMessagesHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HubMessagesHandler.class);
-
-    private final Integer HEART_BEAT_MAX_LATENCY = 2000; // 2 seconds in milliseconds
     private final DataBaseManager dataBaseManager;
     private final ClientWebSocketHandler clientWebSocketHandler;
 
@@ -37,24 +34,32 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onHubStart(HubMessage<HubProperties> hubMessage, Date date) {
         var res = dataBaseManager.setHubStateConnected(hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(new HubStateDetailsDTO(res));
+            clientWebSocketHandler.sendMessage(
+                    ModuleMessageAction.HUB_CONNECTED,
+                    new HubConnected(new HubStateDetailsDTO(res), hubMessage.getData())
+            );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
+
         var prop = hubMessage.getData();
         var period = TimeUnit.MILLISECONDS.convert(prop.getPeriod(), TimeUnit.valueOf(prop.getUnit()));
-        var nextHB = System.currentTimeMillis() + period + HEART_BEAT_MAX_LATENCY;
-        heartbeats.put(hubMessage.getHub(), new HeartBeatDetails(period, System.currentTimeMillis(), nextHB));
+        heartbeats.put(hubMessage.getHub(), new HeartBeatDetails(period, date.getTime()));
     }
 
     @Override
     public void onHubOff(HubMessage<HubShutdownDetails> hubMessage, Date date) {
         var hub = dataBaseManager.setHubStateDisconnected(hubMessage.getHub());
-        var details = dataBaseManager.removeActiveDevices(hubMessage.getHub());
+        var removedDevices = dataBaseManager.removeActiveDevices(hubMessage.getHub());
         heartbeats.remove(hubMessage.getHub());
         try {
             clientWebSocketHandler.sendMessage(
-                    new HubDisconnectedMessage(hubMessage.getData(), new HubStateDetailsDTO(hub), details)
+                    ModuleMessageAction.HUB_DISCONNECTED,
+                    new HubDisconnectedMessage(
+                            hubMessage.getData(),
+                            new HubStateDetailsDTO(hub),
+                            removedDevices.stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList())
+                    )
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
@@ -74,21 +79,17 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                     hubMessage.getHub(),
                     hubMessage.getData().getActive()
             );
-            clientWebSocketHandler.sendMessage(res); //TODO
+            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_RECONNECTED, res);
         }
-
-        hb.setLastHeatBeat(date.getTime());
-        hb.setNextHeatBeat(System.currentTimeMillis() + hb.getHeatBeatPeriod() + HEART_BEAT_MAX_LATENCY);
+        hb.moveToNextPeriod(date.getTime());
         heartbeats.replace(hubMessage.getHub(), hb);
-
-
     }
 
     @Override
     public void onHubMessage(HubMessage<String> hubMessage, Date date) {
         var res = dataBaseManager.updateHubState(hubMessage.getData(), hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(new HubStateDetailsDTO(res));
+            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_MESSAGE, new HubStateDetailsDTO(res));
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -105,11 +106,15 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                 state = dataBaseManager.updateDevice(hubMessage.getData());
             } catch (RuntimeException e) {
                 logger.error(e.getMessage());
+                return;
             }
         }
 
         try {
-            clientWebSocketHandler.sendMessage(new DeviceDataMessage(msg, state));
+            clientWebSocketHandler.sendMessage(
+                    ModuleMessageAction.DEVICE_MESSAGE,
+                    new DeviceDataMessage(msg, new DeviceStateDetailsDTO(state))
+            );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -119,7 +124,10 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onDevicesConnected(HubMessage<DeviceMetadata> hubMessage, Date date) {
         try {
             var res = dataBaseManager.saveDevice(hubMessage.getData(), hubMessage.getHub());
-            clientWebSocketHandler.sendMessage(new DeviceConnectedMessage(hubMessage.getData(), res));
+            clientWebSocketHandler.sendMessage(
+                    ModuleMessageAction.DEVICE_CONNECTED,
+                    new DeviceConnectedMessage(hubMessage.getData(), new DeviceStateDetailsDTO(res))
+            );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -128,10 +136,12 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     @Override
     public void onDevicesDisconnected(HubMessage<DeviceDisconnectionDetails> hubMessage, Date date) {
         try {
+            var res = dataBaseManager.updateDeviceState(hubMessage.getData());
             clientWebSocketHandler.sendMessage(
+                    ModuleMessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectedMessage(
                             hubMessage.getData(),
-                            dataBaseManager.updateDeviceState(hubMessage.getData())
+                            new DeviceStateDetailsDTO(res)
                     )
             );
         } catch (RuntimeException e) {
@@ -142,15 +152,16 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
 
 
     private void checkHeartbeats(){
-        List<DeviceStateDetails> devices = new ArrayList<>();
+
         for (ConcurrentMap.Entry<String, HeartBeatDetails> entry: heartbeats.entrySet()) {
             var hb = entry.getValue();
+            var id = entry.getKey();
             if(hb.getLastHeatBeat() > hb.getNextHeatBeat()){
-                devices.addAll(dataBaseManager.removeActiveDevices(entry.getKey()));
+                var hub= dataBaseManager.setHubStateLost(id);
+                var details = dataBaseManager.removeActiveDevices(id)
+                        .stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList());
+                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_LOST, new HubLostMessage(hub, details));
             }
-        }
-        if(!devices.isEmpty()){
-            clientWebSocketHandler.sendMessage(devices);
         }
     }
 }

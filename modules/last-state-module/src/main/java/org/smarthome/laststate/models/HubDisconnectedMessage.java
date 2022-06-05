@@ -1,7 +1,5 @@
 package org.smarthome.laststate.models;
 
-import org.smarthome.laststate.entities.DeviceStateDetails;
-import org.smarthome.laststate.entities.HubStateDetails;
 import org.smarthome.sdk.models.HubShutdownDetails;
 
 import java.util.List;
@@ -12,9 +10,12 @@ public class HubDisconnectedMessage {
 
     private final HubStateDetailsDTO stateDetails;
 
-    private final List<DeviceStateDetails> devices;
+    private final List<DeviceStateDetailsDTO> devices;
 
-    public HubDisconnectedMessage(HubShutdownDetails shutdownDetails, HubStateDetailsDTO stateDetails, List<DeviceStateDetails> devices) {
+    public HubDisconnectedMessage(
+            HubShutdownDetails shutdownDetails,
+            HubStateDetailsDTO stateDetails,
+            List<DeviceStateDetailsDTO> devices) {
         this.shutdownDetails = shutdownDetails;
         this.stateDetails = stateDetails;
         this.devices = devices;
@@ -29,7 +30,7 @@ public class HubDisconnectedMessage {
         return stateDetails;
     }
 
-    public List<DeviceStateDetails> getDevices() {
+    public List<DeviceStateDetailsDTO> getDevices() {
         return devices;
     }
 }

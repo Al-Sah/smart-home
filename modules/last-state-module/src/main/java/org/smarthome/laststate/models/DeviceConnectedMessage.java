@@ -1,14 +1,13 @@
 package org.smarthome.laststate.models;
 
-import org.smarthome.laststate.entities.DeviceStateDetails;
 import org.smarthome.sdk.models.DeviceMetadata;
 
 public class DeviceConnectedMessage {
 
     private final DeviceMetadata metadata;
-    private final DeviceStateDetails stateDetails;
+    private final DeviceStateDetailsDTO stateDetails;
 
-    public DeviceConnectedMessage(DeviceMetadata metadata, DeviceStateDetails stateDetails) {
+    public DeviceConnectedMessage(DeviceMetadata metadata, DeviceStateDetailsDTO stateDetails) {
         this.metadata = metadata;
         this.stateDetails = stateDetails;
     }
@@ -17,7 +16,7 @@ public class DeviceConnectedMessage {
         return metadata;
     }
 
-    public DeviceStateDetails getStateDetails() {
+    public DeviceStateDetailsDTO getStateDetails() {
         return stateDetails;
     }
 }

@@ -8,9 +8,9 @@ import org.smarthome.sdk.models.DeviceDisconnectionDetails;
 public class DeviceDisconnectedMessage {
 
     private final DeviceDisconnectionDetails details;
-    private final DeviceStateDetails deviceStateDetails;
+    private final DeviceStateDetailsDTO deviceStateDetails;
 
-    public DeviceDisconnectedMessage(DeviceDisconnectionDetails details, DeviceStateDetails deviceStateDetails) {
+    public DeviceDisconnectedMessage(DeviceDisconnectionDetails details, DeviceStateDetailsDTO deviceStateDetails) {
         this.details = details;
         this.deviceStateDetails = deviceStateDetails;
     }
@@ -20,7 +20,7 @@ public class DeviceDisconnectedMessage {
         return details;
     }
 
-    public DeviceStateDetails getDeviceStateDetails() {
+    public DeviceStateDetailsDTO getDeviceStateDetails() {
         return deviceStateDetails;
     }
 }

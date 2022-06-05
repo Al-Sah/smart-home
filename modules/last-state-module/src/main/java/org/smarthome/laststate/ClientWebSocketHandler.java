@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthome.laststate.models.ClientStartMessage;
+import org.smarthome.laststate.models.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -12,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 @Service
 public class ClientWebSocketHandler extends AbstractWebSocketHandler {
@@ -19,7 +20,6 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(ClientWebSocketHandler.class);
 
     private final DataBaseManager dbManager;
-
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private WebSocketSession clientSession = null;
@@ -49,12 +49,15 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
         logger.info("Created new connection {}", session.getRemoteAddress());
 
         try {
-            sendMessage(new ClientStartMessage(
-                    dbManager.getAllDevices(),
-                    dbManager.getAllDevicesErrors(),
-                    dbManager.getAllDevicesState(),
-                    dbManager.getAllHubsState()
-            ));
+            sendMessage(
+                    ModuleMessageAction.START,
+                    new ClientStartMessage(
+                            dbManager.getAllDevices(),
+                            dbManager.getAllDevicesErrors(),
+                            dbManager.getAllDevicesState().stream().map(DeviceStateDetailsDTO::new).collect(Collectors.toList()),
+                            dbManager.getAllHubsState().stream().map(HubStateDetailsDTO::new).collect(Collectors.toList())
+                            )
+            );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -66,14 +69,14 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
         logger.error("Connection {} closed with status {}", session.getRemoteAddress(), status.getCode());
     }
 
-    public void sendMessage(Object data) throws RuntimeException{
+    public void sendMessage(ModuleMessageAction action, Object data) throws RuntimeException{
 
         if(clientSession == null){
             return;
         }
 
         try {
-            clientSession.sendMessage(new TextMessage(jsonMapper.writeValueAsString(data)));
+            clientSession.sendMessage(new TextMessage(jsonMapper.writeValueAsString(new ModuleMessage<>(action,data))));
         } catch (IOException e) {
             throw new RuntimeException("Failed to send message. Error: " + e.getMessage());
         }
