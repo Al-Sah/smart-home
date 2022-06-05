@@ -4,7 +4,8 @@ import lombok.NonNull;
 import lombok.Value;
 import org.smarthome.sdk.models.HubProperties;
 
-@Value public class HubConnected {
+
+@Value public class HubConnectedMessage {
 
     @NonNull HubProperties properties;
     @NonNull HubStateDTO state;
