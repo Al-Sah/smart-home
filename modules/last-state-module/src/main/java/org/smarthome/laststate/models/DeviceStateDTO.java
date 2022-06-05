@@ -1,21 +1,18 @@
 package org.smarthome.laststate.models;
 
-import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 import org.smarthome.laststate.entities.DeviceState;
 
-@Getter
-public class DeviceStateDTO {
+@Value public class DeviceStateDTO {
 
-    private final String id;
-    private final String owner;
+    @NonNull String id;
+    @NonNull String owner;
+    @NonNull Boolean active;
 
-    private final Boolean active;
-
-    private final Long lastConnection;
-
-    private final Long lastDisconnection;
-
-    private final Long lastUpdate;
+    Long lastConnection;
+    Long lastDisconnection;
+    Long lastUpdate;
 
     public DeviceStateDTO(DeviceState entity) {
         this.owner = entity.getOwner();

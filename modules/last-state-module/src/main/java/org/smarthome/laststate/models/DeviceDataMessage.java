@@ -1,15 +1,11 @@
 package org.smarthome.laststate.models;
 
-import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 import org.smarthome.sdk.models.DeviceMessage;
-@Getter
-public class DeviceDataMessage {
 
-    private final DeviceMessage message;
-    private final DeviceStateDTO state;
+@Value public class DeviceDataMessage {
 
-    public DeviceDataMessage(DeviceMessage message, DeviceStateDTO state) {
-        this.message = message;
-        this.state = state;
-    }
+    @NonNull DeviceMessage message;
+    @NonNull DeviceStateDTO state;
 }

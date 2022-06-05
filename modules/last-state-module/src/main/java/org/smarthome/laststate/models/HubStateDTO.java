@@ -1,18 +1,18 @@
 package org.smarthome.laststate.models;
 
-import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 import org.smarthome.laststate.entities.HubState;
 
-@Getter
-public class HubStateDTO {
+@Value public class HubStateDTO {
 
-    private final String id;
-    private final Boolean active;
-    private final Long lastConnection;
-    private final Long lastDisconnection;
-    private final Long lastUpdate;
-    private final String lastMessage;
+    @NonNull String id;
+    @NonNull Boolean active;
+    @NonNull String lastMessage;
 
+    Long lastConnection;
+    Long lastDisconnection;
+    Long lastUpdate;
 
     public HubStateDTO(HubState hubState) {
         this.id = hubState.getId();

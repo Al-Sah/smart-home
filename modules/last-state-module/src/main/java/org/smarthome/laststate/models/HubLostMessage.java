@@ -1,20 +1,16 @@
 package org.smarthome.laststate.models;
 
-import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 import org.smarthome.laststate.entities.HubState;
 
 import java.util.List;
 
-@Getter
+@Value
 public class HubLostMessage {
 
-    private final HubState hubState;
+    @NonNull HubState hubState;
 
-    private final List<DeviceStateDTO> devices;
-
-
-    public HubLostMessage(HubState hubState, List<DeviceStateDTO> devices) {
-        this.hubState = hubState;
-        this.devices = devices;
-    }
+    // can be null
+    List<DeviceStateDTO> devices;
 }

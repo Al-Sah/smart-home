@@ -1,16 +1,11 @@
 package org.smarthome.laststate.models;
 
-import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 import org.smarthome.sdk.models.HubProperties;
 
-@Getter
-public class HubConnected {
+@Value public class HubConnected {
 
-    private final HubProperties properties;
-    private final HubStateDTO state;
-
-    public HubConnected(HubProperties properties, HubStateDTO state) {
-        this.state = state;
-        this.properties = properties;
-    }
+    @NonNull HubProperties properties;
+    @NonNull HubStateDTO state;
 }
