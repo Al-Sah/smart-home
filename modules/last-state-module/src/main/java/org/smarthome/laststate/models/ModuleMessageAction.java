@@ -20,4 +20,6 @@ public enum ModuleMessageAction {
     HUB_LOST,
     HUB_RECONNECTED,
 
+    HUB_HEARTBEAT
+
 }

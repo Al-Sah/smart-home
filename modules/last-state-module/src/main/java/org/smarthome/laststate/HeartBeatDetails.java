@@ -7,9 +7,12 @@ public class HeartBeatDetails {
     private Long lastHeatBeat; // in ms
     private Long nextHeatBeat; // in ms  (including latency)
 
+    private boolean isLost;
+
 
     public HeartBeatDetails(Long heatBeatPeriod, Long lastHeatBeat) {
         period = heatBeatPeriod;
+        isLost = false;
         moveToNextPeriod(lastHeatBeat);
     }
 
@@ -29,6 +32,15 @@ public class HeartBeatDetails {
     public void moveToNextPeriod(Long last) {
         this.lastHeatBeat = last;
         this.nextHeatBeat = last + period + HEART_BEAT_MAX_LATENCY;
+    }
+
+
+    public boolean isLost() {
+        return isLost;
+    }
+
+    public void setLost(boolean lost) {
+        isLost = lost;
     }
 
 }

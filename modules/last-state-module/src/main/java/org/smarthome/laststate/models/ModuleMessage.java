@@ -34,8 +34,9 @@ import lombok.Value;
      *     <li> HUB_MESSAGE: HubStateDTO </li>
      *     <li> HUB_DISCONNECTED: HubDisconnectedMessage </li>
      *
-     *     <li> HUB_LOST: HubLostMessage </li>
-     *     <li> HUB_RECONNECTED: ???? </li>
+     *     <li> HUB_LOST: HubHeartbeatMessage </li>
+     *     <li> HUB_RECONNECTED: HubHeartbeatMessage </li>
+     *     <li> HUB_HEARTBEAT: HubHeartbeatMessage </li>
      * </ol>
      */
     @NonNull T data;

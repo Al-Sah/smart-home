@@ -85,6 +85,14 @@ public class DataBaseManager {
         return hub;
     }
 
+    public HubState setHubStateAlive(String id){
+        var hub =  hubStateRepository.findById(id).orElse(new HubState(id));
+        hub.setActive(true);
+        hub.setLastUpdate(System.currentTimeMillis());
+        hubStateRepository.save(hub);
+        return hub;
+    }
+
     public HubState updateHubState(String msg, String id){
         var hub = hubStateRepository.findById(id).orElse(new HubState(id));
         hub.setActive(true);

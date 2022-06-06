@@ -74,14 +74,23 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
             return;
         }
 
-        // TODO just once ..... ERRORS !!
-        if(hb.getLastHeatBeat() > hb.getNextHeatBeat()){
-            var res = dataBaseManager.updateActiveDevices(
-                    hubMessage.getHub(),
-                    hubMessage.getData().getActive()
+        if(hb.getNextHeatBeat() > System.currentTimeMillis()){
+
+            var hub = dataBaseManager.setHubStateAlive(hubMessage.getHub());
+            var devices = dataBaseManager
+                    .updateActiveDevices(hubMessage.getHub(), hubMessage.getData().getActive());
+
+            var resultMessage = new HubHeartbeatMessage(
+                    new HubStateDTO(hub),
+                    devices.stream().map(DeviceStateDTO::new).collect(Collectors.toList())
             );
-            // TODO create model
-            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_RECONNECTED, res);
+
+            if(hb.isLost()){
+                hb.setLost(false);
+                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_RECONNECTED, resultMessage);
+            }else {
+                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_HEARTBEAT, resultMessage);
+            }
         }
         hb.moveToNextPeriod(date.getTime());
         heartbeats.replace(hubMessage.getHub(), hb);
@@ -101,18 +110,14 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onDeviceMessage(HubMessage<DeviceMessage> hubMessage, Date date) {
         var msg = hubMessage.getData();
         DeviceState state;
-        if(msg.getError() != null){
-            state = dataBaseManager.saveDeviceError(msg);
-        }else{ //TODO fix error // info ???
-            try {
-                state = dataBaseManager.updateDevice(hubMessage.getData());
-            } catch (RuntimeException e) {
-                logger.error(e.getMessage());
-                return;
-            }
+        try {
+             state = msg.getError() != null ? dataBaseManager.saveDeviceError(msg) : dataBaseManager.updateDevice(msg);
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+            return;
         }
 
-        try { //TODO fix error // info ???
+        try {
             clientWebSocketHandler.sendMessage(
                     ModuleMessageAction.DEVICE_MESSAGE,
                     new DeviceDataMessage(msg, new DeviceStateDTO(state))
@@ -158,14 +163,16 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
         for (ConcurrentMap.Entry<String, HeartBeatDetails> entry: heartbeats.entrySet()) {
             var hb = entry.getValue();
             var id = entry.getKey();
-            // TODO just once...  ERRORS !!
-            if(hb.getLastHeatBeat() > hb.getNextHeatBeat()){
+
+            if(System.currentTimeMillis() > hb.getNextHeatBeat() && !hb.isLost()){
                 var hub= dataBaseManager.setHubStateLost(id);
                 var details = dataBaseManager.removeActiveDevices(id)
                         .stream().map(DeviceStateDTO::new).collect(Collectors.toList());
+                hb.setLost(true);
+                heartbeats.replace(id, hb);
                 clientWebSocketHandler.sendMessage(
                         ModuleMessageAction.HUB_LOST,
-                        new HubLostMessage(new HubStateDTO(hub), details)
+                        new HubHeartbeatMessage(new HubStateDTO(hub), details)
                 );
             }
         }
