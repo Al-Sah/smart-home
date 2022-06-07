@@ -1,7 +1,8 @@
 #! /bin/bash
 
 
-
+# apply .env variables
+export $(grep -v '^#' .env | xargs)
 
 docker-compose up -d
 sleep 5  # Waits 5 seconds  (Broker may not be available)
