@@ -23,8 +23,8 @@ class Server:
     async def get(self, request):
         entity_field = request.match_info.get('entity_field', '')
         entity_id = request.match_info.get('entity_id', '')
-        ts_gt = request.match_info.get('ts_gt', '')
-        ts_lt = request.match_info.get('ts_lt', '')
+        ts_gt = request.rel_url.query['ts_gt']
+        ts_lt = request.rel_url.query['ts_lt']
         return web.json_response(
             data=list(self.mc[self.db][self.col].find(
                 {
@@ -35,7 +35,7 @@ class Server:
 
     def run(self):
 
-        self.app.router.add_route('GET', '/{entity_field}/{entity_id}/{ts_gt}-{ts_lt}', self.get)
+        self.app.router.add_route('GET', '/{entity_field}/{entity_id}', self.get)
         web.run_app(self.app, host=self.bind_host, port=self.bind_port)
         print('done')
 
