@@ -28,7 +28,7 @@ class Consumer:
         col = self.mc[self.db][self.col]
         for msg in self.consumer:
             value = msg.value
-            if value['data']['action'] != 'd-msg':
+            if value['action'] != 'd-msg':
                 continue
             data = value['data'] | {'hub': value['hub'], 'ts': msg.timestamp}
             print(data)
