@@ -1,0 +1,16 @@
+version: '3.10'
+
+services:
+  consumer:
+    container_name: data-history-consumer
+    build:
+      context: .
+      dockerfile: DockerfileConsumer
+
+  server:
+    container_name: data-history-server
+    build:
+      context: .
+      dockerfile: DockerfileServer
+    ports:
+      - "9090:9090"
