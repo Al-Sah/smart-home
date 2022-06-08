@@ -1,0 +1,5 @@
+aiohttp
+kafka-python
+pymongo
+pymongo[srv]
+PyYAML
