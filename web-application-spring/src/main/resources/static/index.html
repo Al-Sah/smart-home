@@ -7,7 +7,23 @@
 </head>
 <body>
 
-    <H1>Hi usr </H1>
+    <H1>Hi user </H1>
+
+    <form action="http://localhost:8080/history">
+        <label>
+            <input type="text" name="type" value="device" required > type
+        </label>
+        <label>
+            <input type="text"   name="id" required > id
+        </label>
+        <label>
+            <input type="number" name="from" required > from
+        </label>
+        <label>
+            <input type="number" name="to" required > to
+        </label>
+        <button type="submit"> GET </button>
+    </form>
 
 </body>
 </html>
