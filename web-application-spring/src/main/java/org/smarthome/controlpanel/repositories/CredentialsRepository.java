@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CredentialsRepository extends CrudRepository<UserCredentials, Integer> {
+
+    UserCredentials findByLogin(String login);
 }
