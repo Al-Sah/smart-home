@@ -1,6 +1,6 @@
 package org.smarthome.controlpanel;
 
-import org.smarthome.controlpanel.repositories.CredentialsRepository;
+import org.smarthome.controlpanel.repositories.UsersRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,15 +14,15 @@ import java.util.List;
 @Service
 public class UserAuthService implements UserDetailsService {
 
-    private final CredentialsRepository credentialsRepository;
+    private final UsersRepository usersRepository;
 
-    public UserAuthService(CredentialsRepository credentialsRepository) {
-        this.credentialsRepository = credentialsRepository;
+    public UserAuthService(UsersRepository usersRepository) {
+        this.usersRepository = usersRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var smartHomeUser = credentialsRepository.findByLogin(username)
+        var smartHomeUser = usersRepository.findByLogin(username)
                 .orElseThrow(()-> new UsernameNotFoundException(username));
 
         return new User(

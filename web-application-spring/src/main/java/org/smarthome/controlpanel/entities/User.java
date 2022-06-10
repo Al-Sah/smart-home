@@ -17,10 +17,11 @@ public class User {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Integer id;
 
+	private String login;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "credentials_id", referencedColumnName = "id")
-	private UserCredentials credentials;
+	private String pwd;
+
+	private String role;
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "profile_info_id", referencedColumnName = "id")
