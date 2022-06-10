@@ -22,7 +22,8 @@ public class UserAuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var smartHomeUser = credentialsRepository.findByLogin(username);
+        var smartHomeUser = credentialsRepository.findByLogin(username)
+                .orElseThrow(()-> new UsernameNotFoundException(username));
 
         return new User(
                 smartHomeUser.getLogin(),
