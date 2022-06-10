@@ -1,4 +1,4 @@
-package org.smarthome.controlpanel;
+package org.smarthome.controlpanel.services;
 
 public class AliasNotFoundException extends RuntimeException {
 

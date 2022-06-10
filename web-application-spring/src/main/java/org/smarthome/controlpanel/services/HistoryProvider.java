@@ -1,6 +1,7 @@
-package org.smarthome.controlpanel;
+package org.smarthome.controlpanel.services;
 
 import org.smarthome.controlpanel.config.HistoryModuleConfiguration;
+import org.smarthome.controlpanel.models.HistoryRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

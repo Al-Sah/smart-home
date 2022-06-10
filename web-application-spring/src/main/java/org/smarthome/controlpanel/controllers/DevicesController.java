@@ -1,6 +1,9 @@
-package org.smarthome.controlpanel;
+package org.smarthome.controlpanel.controllers;
 
 import org.smarthome.controlpanel.dtos.DeviceAliasDTO;
+import org.smarthome.controlpanel.models.DeviceAliasRequest;
+import org.smarthome.controlpanel.services.AliasNotFoundException;
+import org.smarthome.controlpanel.services.AliasesManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

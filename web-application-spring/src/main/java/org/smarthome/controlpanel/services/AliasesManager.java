@@ -1,5 +1,6 @@
-package org.smarthome.controlpanel;
+package org.smarthome.controlpanel.services;
 
+import org.smarthome.controlpanel.models.DeviceAliasRequest;
 import org.smarthome.controlpanel.dtos.DeviceAliasDTO;
 import org.smarthome.controlpanel.entities.DeviceAlias;
 import org.smarthome.controlpanel.repositories.AliasesRepository;

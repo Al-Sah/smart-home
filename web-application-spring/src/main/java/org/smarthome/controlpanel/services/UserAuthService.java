@@ -1,4 +1,4 @@
-package org.smarthome.controlpanel;
+package org.smarthome.controlpanel.services;
 
 import org.smarthome.controlpanel.repositories.UsersRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
