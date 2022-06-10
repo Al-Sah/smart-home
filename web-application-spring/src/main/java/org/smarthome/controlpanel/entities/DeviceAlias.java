@@ -1,6 +1,7 @@
 package org.smarthome.controlpanel.entities;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
@@ -10,6 +11,7 @@ import javax.persistence.*;
 @Data
 @Entity
 @Table(name = "aliases")
+@NoArgsConstructor
 public class DeviceAlias {
 
 
@@ -21,4 +23,9 @@ public class DeviceAlias {
 	private String device;
 	private String name;
 
+	public DeviceAlias(Integer user, String device, String name) {
+		this.user = user;
+		this.device = device;
+		this.name = name;
+	}
 }
