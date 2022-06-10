@@ -17,9 +17,7 @@ public class DeviceAlias {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Integer id;
 
-	@ManyToOne
-	@JoinColumn(name="user")
-	private User user;
+	private Integer user;
 	private String device;
 	private String name;
 
