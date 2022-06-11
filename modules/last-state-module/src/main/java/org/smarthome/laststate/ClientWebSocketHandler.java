@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthome.laststate.models.*;
+import org.smarthome.sdk.models.DeviceMetadata;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -12,6 +13,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,15 +56,34 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
             sendMessage(
                     ModuleMessageAction.START,
                     new StartMessage(
-                            dbManager.getAllDevices(),
-                            dbManager.getAllDevicesErrors(),
-                            dbManager.getAllDevicesState().stream().map(DeviceStateDTO::new).collect(Collectors.toList()),
+                            generateDevicesDescription(),
                             dbManager.getAllHubsState().stream().map(HubStateDTO::new).collect(Collectors.toList())
                     )
             );
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
+    }
+
+    private List<StartMessage.FullDeviceDescription> generateDevicesDescription(){
+        var devices = dbManager.getAllDevices();
+        var errors = dbManager.getAllDevicesErrors();
+        var devicesState = dbManager.getAllDevicesState().stream().map(DeviceStateDTO::new).collect(Collectors.toList());
+
+        var res = new ArrayList<StartMessage.FullDeviceDescription>();
+
+        for (DeviceMetadata device : devices) {
+            res.add(new StartMessage.FullDeviceDescription(
+                    device,
+                    errors.stream()
+                            .filter((message -> Objects.equals(message.getDevice(), device.getId())))
+                            .findFirst().orElse(null),
+                    devicesState.stream()
+                            .filter((state -> Objects.equals(state.getId(), device.getId())))
+                            .findFirst().orElse(null)
+            ));
+        }
+        return res;
     }
 
     @Override

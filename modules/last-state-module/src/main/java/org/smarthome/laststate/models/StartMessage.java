@@ -20,8 +20,13 @@ import java.util.List;
     /**
      * All registered devices
      */
-    List<DeviceMetadata> devices;
-    List<DeviceMessage> errors;
-    List<DeviceStateDTO> devicesState;
+    List<FullDeviceDescription> devices;
     List<HubStateDTO> hubsState;
+
+
+    @Value public static class FullDeviceDescription{
+        DeviceMetadata metadata;
+        DeviceMessage lastError;
+        DeviceStateDTO state;
+    }
 }
