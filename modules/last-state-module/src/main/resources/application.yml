@@ -2,15 +2,12 @@ spring:
   kafka:
     consumer:
       auto-offset-reset: earliest
-      client-id: test-hub1 #TODO
-      group-id: test-group1 #TODO
-    bootstrap-servers: localhost:9092
-
+      client-id: smart-home-modules
+      group-id: last-state-module
+    bootstrap-servers: ${KAFKA_SERVER}
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: smarthome-last-state
+      uri: ${CONNECTION_URI}
 
 server:
   port: 8083
