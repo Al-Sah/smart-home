@@ -2,8 +2,7 @@ HELP.md
 .gradle
 build/
 
-models-*.jar
-module-*.jar
+*.crt
 
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

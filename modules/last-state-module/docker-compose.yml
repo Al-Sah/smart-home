@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  module:
+    container_name: last-state-module
+    image: smarthome/last-state-module   #docker build -t smarthome/last-state-module .
+    ports:
+      - "8083:8083"
+    environment:
+      - CONNECTION_URI=uri
+      - KAFKA_SERVER=ip-with-port
