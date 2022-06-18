@@ -1,5 +1,6 @@
-package org.smarthome.laststate;
+package org.smarthome.laststate.configuration;
 
+import org.smarthome.laststate.services.ClientWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

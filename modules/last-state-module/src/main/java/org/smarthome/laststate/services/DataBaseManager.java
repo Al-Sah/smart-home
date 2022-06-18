@@ -1,4 +1,4 @@
-package org.smarthome.laststate;
+package org.smarthome.laststate.services;
 
 import org.smarthome.laststate.entities.HubState;
 import org.smarthome.laststate.entities.DeviceState;

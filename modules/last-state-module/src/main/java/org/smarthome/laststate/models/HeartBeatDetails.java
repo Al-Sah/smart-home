@@ -1,4 +1,4 @@
-package org.smarthome.laststate;
+package org.smarthome.laststate.models;
 
 public class HeartBeatDetails {
 

@@ -1,4 +1,4 @@
-package org.smarthome.laststate;
+package org.smarthome.laststate.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
