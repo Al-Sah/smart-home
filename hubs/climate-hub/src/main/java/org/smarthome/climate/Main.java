@@ -2,10 +2,7 @@ package org.smarthome.climate;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.smarthome.climate.devices.ConfigurableThermometer;
-import org.smarthome.climate.devices.PlainThermometer;
-import org.smarthome.climate.devices.TemperatureUnit;
-import org.smarthome.climate.devices.ThermometerSettings;
+import org.smarthome.climate.devices.*;
 import org.smarthome.sdk.hub.consumer.HubConsumer;
 import org.smarthome.sdk.hub.consumer.HubConsumerConfiguration;
 import org.smarthome.sdk.hub.consumer.HubConsumerException;
@@ -76,16 +73,24 @@ public class Main {
                 callback
         );
 
+        var luxMeter = new LuxMeter(
+                "device-lux-meter1",
+                new ImitationPattern(TimeUnit.SECONDS, 5, 10),
+                callback
+        );
+
         commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1)));
 
         try {
             producer.registerDevice(thermometer1);
             producer.registerDevice(thermometer2);
             producer.registerDevice(thermometer3);
+            producer.registerDevice(luxMeter);
             producer.setHeartBeatData(new HubHeartBeatData(new String[]{
                     thermometer1.getId(),
                     thermometer2.getId(),
-                    thermometer3.getId()
+                    thermometer3.getId(),
+                    luxMeter.getId()
             }, null));
         } catch (HubProducerException e) {
             System.out.println(e.getMessage());
@@ -100,6 +105,7 @@ public class Main {
             thermometer1.stop();
             thermometer2.stop();
             thermometer3.stop();
+            luxMeter.stop();
             producer.send(MessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectionDetails(thermometer1.getId(), "hub is going to shutdown")
             );
@@ -108,6 +114,9 @@ public class Main {
             );
             producer.send(MessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectionDetails(thermometer3.getId(), "hub is going to shutdown")
+            );
+            producer.send(MessageAction.DEVICE_DISCONNECTED,
+                    new DeviceDisconnectionDetails(luxMeter.getId(), "hub is going to shutdown")
             );
 
             producer.stop("user requested shutdown", null, (event, ex)-> System.out.println(event));
