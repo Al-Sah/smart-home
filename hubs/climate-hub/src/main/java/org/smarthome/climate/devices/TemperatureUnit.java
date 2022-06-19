@@ -1,4 +1,4 @@
-package org.smarthome.climate;
+package org.smarthome.climate.devices;
 
 public enum TemperatureUnit {
     fahrenheit("F"),

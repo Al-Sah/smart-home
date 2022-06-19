@@ -2,6 +2,10 @@ package org.smarthome.climate;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.smarthome.climate.devices.ConfigurableThermometer;
+import org.smarthome.climate.devices.PlainThermometer;
+import org.smarthome.climate.devices.TemperatureUnit;
+import org.smarthome.climate.devices.ThermometerSettings;
 import org.smarthome.sdk.hub.consumer.HubConsumer;
 import org.smarthome.sdk.hub.consumer.HubConsumerConfiguration;
 import org.smarthome.sdk.hub.consumer.HubConsumerException;
@@ -10,6 +14,7 @@ import org.smarthome.sdk.hub.producer.HubProducer;
 import org.smarthome.sdk.hub.producer.HubProducerConfiguration;
 import org.smarthome.sdk.hub.producer.HubProducerException;
 import org.smarthome.sdk.models.DeviceDisconnectionDetails;
+import org.smarthome.sdk.models.HubHeartBeatData;
 import org.smarthome.sdk.models.MessageAction;
 
 import java.io.IOException;
@@ -40,31 +45,48 @@ public class Main {
 
         var thermometer1 = new PlainThermometer(
                 "device-plain-thermometer1",
-                TemperatureUnit.celsius,
-                -20,
-                40,
-                0.5D,
-                callback,
-                new ImitationPattern(2, 4, 1.5F, TimeUnit.SECONDS)
+                new ThermometerSettings(
+                        "plain-thermometer",
+                        TemperatureUnit.celsius,
+                        -20, 40, 0.5F
+                ),
+                new ImitationPattern(TimeUnit.SECONDS, 1, 3),
+                callback
         );
 
         var thermometer2 = new PlainThermometer(
                 "device-plain-thermometer2",
-                TemperatureUnit.celsius,
-                -20,
-                40,
-                0.5D,
-                callback,
-                new ImitationPattern(1, 3, 1.5F, TimeUnit.SECONDS)
+                new ThermometerSettings(
+                        "plain-thermometer",
+                        TemperatureUnit.fahrenheit,
+                        -22, 122, 1F
+                ),
+                new ImitationPattern(TimeUnit.SECONDS, 2, 7),
+                callback
         );
 
-        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1, thermometer2)));
+        var thermometer3 = new ConfigurableThermometer(
+                "device-configurable-thermometer1",
+                new ThermometerSettings(
+                        "configurable-thermometer",
+                        TemperatureUnit.celsius,
+                        -25, 60, 0.5F
+                ),
+                new ImitationPattern(TimeUnit.SECONDS, 5, 10),
+                callback
+        );
 
+        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1)));
 
         try {
             producer.registerDevice(thermometer1);
             producer.registerDevice(thermometer2);
-            producer.setHeartBeatData("1");
+            producer.registerDevice(thermometer3);
+            producer.setHeartBeatData(new HubHeartBeatData(new String[]{
+                    thermometer1.getId(),
+                    thermometer2.getId(),
+                    thermometer3.getId()
+            }, null));
         } catch (HubProducerException e) {
             System.out.println(e.getMessage());
         }
@@ -77,11 +99,15 @@ public class Main {
 
             thermometer1.stop();
             thermometer2.stop();
+            thermometer3.stop();
             producer.send(MessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectionDetails(thermometer1.getId(), "hub is going to shutdown")
             );
             producer.send(MessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectionDetails(thermometer2.getId(), "hub is going to shutdown")
+            );
+            producer.send(MessageAction.DEVICE_DISCONNECTED,
+                    new DeviceDisconnectionDetails(thermometer3.getId(), "hub is going to shutdown")
             );
 
             producer.stop("user requested shutdown", null, (event, ex)-> System.out.println(event));
@@ -90,7 +116,6 @@ public class Main {
         } catch (HubProducerException | IOException e) {
             throw new RuntimeException(e);
         }
-
 
     }
 
@@ -102,7 +127,6 @@ public class Main {
         producer = new HubProducer(producerConfiguration);
 
         commandsHandler = new ClimateHubCommandsHandler(producer);
-
         var consumerProperties = new Properties();
         consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, hubId);

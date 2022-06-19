@@ -7,33 +7,32 @@ public class ImitationPattern {
 
     private final int minTime;
     private final int timeDifference;
-
-    private final float maxDifference;
-
+    private final float maxValueDifference;
     private final TimeUnit unit;
 
     private final Random random = new Random();
 
-    public ImitationPattern(int minTime, int maxTime, float maxDifference, TimeUnit unit) {
+    public ImitationPattern(TimeUnit unit, int minTime, int maxTime, float maxDifference) {
         this.unit = unit;
         this.minTime = minTime;
-        this.maxDifference = maxDifference;
+        this.maxValueDifference = maxDifference;
         this.timeDifference = maxTime - minTime;
     }
 
-    public int newTime(){
-        int newTime = minTime + random.nextInt(timeDifference);
-        if(unit == TimeUnit.SECONDS){
-            return newTime * 1000;
-        }
-        if(unit == TimeUnit.MINUTES){
-            return newTime * 60000;
-        }
-        return newTime;
+    public ImitationPattern(TimeUnit unit, int minTime, int maxTime) {
+        this(unit, minTime, maxTime, 0);
     }
 
-    public float getMaxDifference() {
-        return maxDifference;
+    public ImitationPattern(int minTime, int maxTime) {
+        this(TimeUnit.SECONDS, minTime, maxTime, 0);
+    }
+
+    public long newTime(){
+        return TimeUnit.MILLISECONDS.convert(minTime + random.nextInt(timeDifference), unit);
+    }
+
+    public float getMaxValueDifference() {
+        return maxValueDifference;
     }
 
 }
