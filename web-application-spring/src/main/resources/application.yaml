@@ -1,17 +1,10 @@
-
-
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/smart-home
-    username: user
-    password: pwd
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: validate
-
+    url: ${DATABASE_URI}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PWD}
 
 module:
   history:
-    host: localhost
+    host: ${HISTORY_MODULE_SERVER}
