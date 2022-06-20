@@ -1,15 +1,15 @@
 #! /bin/bash
 
 
-# apply .env variables
-export $(grep -v '^#' .env | xargs)
+export SERVER_IP="${1:-localhost}"
+# SERVER_IP is used in the docker-compose
 
 docker-compose up -d
 sleep 5  # Waits 5 seconds  (Broker may not be available)
 
-# TODO: better check: compare containers names
-if [[ $(docker ps | grep bitnami -c) != 2 ]]; then
-  echo "ERROR: There are must be 2 containers (bitnami/kafka, bitnami/zookeeper)"
+
+if [[ $(docker ps | grep -E bitnami/'kafka|zookeeper' -c) != 2 ]]; then
+  echo "ERROR: There are must be 2 containers (bitnami/kafka and bitnami/zookeeper)"
   exit
 fi
 
@@ -23,20 +23,16 @@ function create_topic(){
     exit
   fi
 
-  local server_ip="${2:-localhost}" # default value: localhost
   local r_factor="${3:-1}"          # default value: 1
   local partitions="${4:-1}"        # default value: 1
 
   docker compose exec kafka	/opt/bitnami/kafka/bin/kafka-topics.sh  \
       --create		                                                  \
-      --bootstrap-server "${server_ip}":9092	                      \
+      --bootstrap-server "${SERVER_IP}":9093	                      \
       --replication-factor "${r_factor}"                            \
       --partitions "${partitions}"                                  \
       --topic "${topic_name}"
 }
 
-
-server_ip="${1:-localhost}"
-
-create_topic hubs-messages "${server_ip}"
-create_topic modules-messages "${server_ip}"
+create_topic hubs-messages "${SERVER_IP}"
+create_topic modules-messages "${SERVER_IP}"
