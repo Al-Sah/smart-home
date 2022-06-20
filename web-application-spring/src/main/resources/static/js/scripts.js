@@ -2,7 +2,8 @@ $(document).ready(function () {
     /*
 * Connection to WebSocket
 */
-    const ws = new WebSocket("ws://188.166.82.71:8083/ds");
+    //const ws = new WebSocket("ws://188.166.82.71:8083/ds");
+    const ws = new WebSocket("ws://localhost:8082");
     ws.onopen = function () {
     }
     let deviceList = Array();
@@ -23,14 +24,30 @@ $(document).ready(function () {
             switch (item.metadata.type) {
                 case "SENSOR":
                     if(item.error === undefined){
-                        if(item.state === undefined || !item.state.active){
-                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"  src="img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><p>Status unknown</p></div></div></div>`;
+                        if(item.state === undefined){
+                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"  src="../img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><p>Status unknown</p></div></div></div>`;break;
+                        }
+                        let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
+                        let lastConnection = new Date(item.state.lastConnection).toLocaleString();
+                        if(!item.state.active){
+                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="../img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p>`;
+                            data+=`<div class="d-flex justify-content-between align-items-center"><p>Device is not active. Last connection: ${lastConnection}</p><small class="text-muted">${lastUpdate}</small></div></div></div></div>`;
                         }
                         else{
-                            let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
-                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><ul>`;
+                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="../img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><ul>`;
                             item.metadata.components.forEach(function (item1) {
-                                data+=`<li id="${item1.id}">${item1.mainProperty.description} ${item1.mainProperty.value} ${item1.mainProperty.unit} <button type="button" class="btn btn-sm btn-outline-secondary btnChangeProp">Edit</button></li>`;
+                                if(item1.writableProperties === undefined){
+                                    data+=`<li id="${item1.id}">${item1.mainProperty.description} ${item1.mainProperty.value} ${item1.mainProperty.unit}<p><a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                        Link with href
+                                      </a>
+                                      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                                        Button with data-target
+                                      </button>
+                                    </p></li>`;
+                                }
+                                else {
+
+                                }
                             });
                             data+=`</ul><div class="d-flex justify-content-between align-items-center"><small class="text-muted">${lastUpdate}</small></div></div></div></div>`;
                         }
@@ -76,7 +93,7 @@ $(document).ready(function () {
         let addStatus = true;
         deviceList.forEach(function (item) {
             if(answer.data.state == item.id){
-                item.metadata[0].components.mainProperty.value = answer.data.components.value;
+                item.metadata.components.mainProperty.value = answer.data.components.value;
                 item.state.active = true;
                 addStatus = false;
             }
