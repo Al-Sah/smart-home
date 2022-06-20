@@ -9,12 +9,12 @@
 
 Hub can produce several types of messages:
 1. [Hub start](#hub-start)
-2. [Hub stop](#hub-stop)
+2. [Hub shutdown](#hub-shutdown)
 3. [Hub message](#hub-message)
-4. [Heart beat](#heart-beat)
-5. [Devices connected](#devices-connected)
-6. [Devices messages](#devices-messages)
-7. [Devices disconnected](#devices-disconnected)
+4. [Heart beat](#hub-heart-beat)
+5. [Device connected](#device-connected)
+6. [Device disconnected](#device-disconnected)
+7. [Device messages](#device-message)
 
 <b> Note that each message contains "hub-id" header ! </b>
 <p> Field "action" is a shortcut for the MessageAction </p>
@@ -24,17 +24,19 @@ This message must be sent firstly to identify hub. <br>
 Field "data" contains hub description and extra properties like heart beat period (hb)
 ```json
     {
+        "hub-id": "hub1",
         "action":"start",
         "data": "{\"description\":\"test-hub\", \"hb\":30}"
     }
 ```
 
-#### Hub stop
+#### Hub shutdown
 Field "data" contains disconnection reason 
 ```json
     {
-        "action":"off",
-        "data":"Hub is shutting down"
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "action":"shutdown",
+        "data":"{\"reason\": \"shutting down\"}"
     }
 ```
 
@@ -43,78 +45,66 @@ Reserved for the future ... <br>
 Notify about some changes in configuration or handle some user request and send response 
 ```json
     {
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
         "action":"hub-msg",
         "data": "important message"
     }
 ```
 
-#### Heart beat
+#### Hub heart beat
 Hub must produce heart beat message with fixed period. For instance, each 30 seconds
 ```json
     {
-        "action":"alive"
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "action":"alive",
+        "data": "{\"ts\":1652919949,\"alive-devices\":5,\"total-devices\":10}"
     }
 ```
 
-#### Devices connected
-Hub must send notification on devices connection
-1. field 'id' - const device uuid 
-2. field 'type' - device type. Starts with "ACTUATOR__" or "SENSOR__"
-3. field 'name' - custom device name
-4. field 'data' - additional information can pe passed here as string (in json format)
+#### Device connected
+Hub must send notification on device connection
+ * **hub-id** - const hub uuid
+ * **device-id** - const device uuid 
+ * **type** - device type. Starts with "ACTUATOR__" or "SENSOR__"
+ * **name** - custom device name
+ * **data** - additional information can pe passed here as string (in json format)
+ 
 ```json
     {
-        "action": "devices-connected",
-        "messages":
-            [{
-                "id":"device1",
-                "type":"SENSOR__thermometer",
-                "name":"temperature imitator1",
-                "data":"{\"unit\":\"celsius\"}"
-            },
-            {
-                "id":"device2",
-                "type":"SENSOR__thermometer",
-                "name":"temperature imitator2",
-                "data":"{\"unit\":\"celsius\"}"
-            }]
-    }
-```
-
-#### Devices messages
-1. field 'id' - const device uuid
-2. field 'data' - parsed information given from device and presented as a string in json format
-```json
-    {
-        "action":"msg",
-        "messages":
-            [{
-                "id":"device1",
-                "data":"23"
-            },
-            {
-                "id":"device2",
-                "data": "21"
-            }]
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
+        "action": "device-connected",
+        "data":"{\"unit\":\"celsius\",\"type\":\"SENSOR__thermometer\",\"name\":\"temperature imitator1\"}"
     }
 ```
 
 
-#### Devices disconnected
+#### Device disconnected
 Hub must send notification on devices disconnection
-1. field 'id' - const device uuid
-2. field 'data' - disconnection reason
+* **hub-id** - const hub uuid
+* **device-id** - const device uuid 
+* **data** - - disconnection reason
+
 ```json
     {
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
         "action":"devices-disconnected",
-        "messages":
-            [{
-                "id":"device1",
-                "data":"Connection lost"
-            },
-            {
-                "id":"device2",
-                "data":"Connection lost"
-            }]
+        "data": "connection lost"
+    }
+```
+
+
+#### Device message
+ * **hub-id** - const hub uuid
+ * **device-id** - const device uuid 
+ * **data** - parsed information given from device and presented as a string in json format
+
+```json
+    {
+        "hub-id": "0b97d1b9-9759-4adc-b9a6-b885e1e9b872",
+        "device-id":"ada9ff04-ed3f-470f-9c30-23068b9b8c02",
+        "action":"msg",
+        "data": "{\"value\": \"value\"}"
     }
 ```

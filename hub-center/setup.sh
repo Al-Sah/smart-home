@@ -1,12 +1,13 @@
 #! /bin/bash
 
 
-
+# apply .env variables
+export $(grep -v '^#' .env | xargs)
 
 docker-compose up -d
-sleep 2  # Waits 2 seconds  (Broker may not be available)
+sleep 5  # Waits 5 seconds  (Broker may not be available)
 
-
+# TODO: better check: compare containers names
 if [[ $(docker ps | grep bitnami -c) != 2 ]]; then
   echo "ERROR: There are must be 2 containers (bitnami/kafka, bitnami/zookeeper)"
   exit
