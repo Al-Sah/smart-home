@@ -1,3 +1,5 @@
 package org.smarthome.controlpanel.models;
 
-public record HistoryRequest(String type, String id, Long from, Long to) {}
+import lombok.NonNull;
+
+public record HistoryRequest(@NonNull String type, @NonNull String id, Long from, Long to) {}

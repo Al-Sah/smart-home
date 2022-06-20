@@ -1,3 +1,5 @@
 package org.smarthome.controlpanel.models;
 
-public record DeviceAliasRequest(String device, String alias) { }
+import lombok.NonNull;
+
+public record DeviceAliasRequest(@NonNull String device, @NonNull String alias) { }
