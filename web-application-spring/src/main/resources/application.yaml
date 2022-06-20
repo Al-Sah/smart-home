@@ -4,6 +4,10 @@ spring:
     url: ${DATABASE_URI}
     username: ${DATABASE_USER}
     password: ${DATABASE_PWD}
+  kafka:
+    producer:
+      client-id: web-application-producer
+    bootstrap-servers: ${KAFKA_SERVER}
 
 module:
   history:
