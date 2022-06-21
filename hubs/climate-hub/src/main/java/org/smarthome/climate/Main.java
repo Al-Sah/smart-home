@@ -79,7 +79,7 @@ public class Main {
                 callback
         );
 
-        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1)));
+        commandsHandler.setDevices(new ArrayList<>(List.of(thermometer1, thermometer2, thermometer3, luxMeter)));
 
         try {
             producer.registerDevice(thermometer1);
@@ -131,13 +131,13 @@ public class Main {
     public static void setup() throws HubProducerException, HubConsumerException{
 
         var producerProperties = new Properties();
-        producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9093");
         var producerConfiguration = new HubProducerConfiguration("hubs-messages", hubId, producerProperties, "climate-hub");
         producer = new HubProducer(producerConfiguration);
 
         commandsHandler = new ClimateHubCommandsHandler(producer);
         var consumerProperties = new Properties();
-        consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9093");
         consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, hubId);
         var consumerConfiguration = new HubConsumerConfiguration("modules-messages", hubId, consumerProperties, commandsHandler);
         consumer = new HubConsumer(consumerConfiguration);
