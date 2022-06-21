@@ -2,8 +2,8 @@ $(document).ready(function () {
     /*
 * Connection to WebSocket
 */
-    //const ws = new WebSocket("ws://188.166.82.71:8083/ds");
-    const ws = new WebSocket("ws://localhost:8082");
+    const ws = new WebSocket("ws://188.166.82.71:8083/ds");
+    //const ws = new WebSocket("ws://localhost:8082");
     ws.onopen = function () {
     }
     let deviceList = Array();
@@ -30,23 +30,69 @@ $(document).ready(function () {
                         let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
                         let lastConnection = new Date(item.state.lastConnection).toLocaleString();
                         if(!item.state.active){
-                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="../img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p>`;
+                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p>`;
                             data+=`<div class="d-flex justify-content-between align-items-center"><p>Device is not active. Last connection: ${lastConnection}</p><small class="text-muted">${lastUpdate}</small></div></div></div></div>`;
                         }
                         else{
-                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="../img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><ul>`;
-                            item.metadata.components.forEach(function (item1) {
+                            data+=`<div class = 'col-md-4' id='${item.metadata.id}'><div class="card mb-4 box-shadow"><img class="card-img-top"   src="img/topImg.png" alt="Card image cap"><div class="card-body"><p>Device name: ${item.metadata.name}</p><ul>`;
+                            item.metadata.components.forEach(function (item1, key) {
                                 if(item1.writableProperties === undefined){
-                                    data+=`<li id="${item1.id}">${item1.mainProperty.description} ${item1.mainProperty.value} ${item1.mainProperty.unit}<p><a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-                                        Link with href
-                                      </a>
-                                      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                                        Button with data-target
+                                    data+=`<li id="${item1.id}">${item1.mainProperty.description} <span>${item1.mainProperty.value}</span> ${item1.mainProperty.unit}<p>
+                                      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${item1.id}-info" aria-expanded="false" aria-controls="${item1.id}-info">
+                                        Info
                                       </button>
-                                    </p></li>`;
+                                      <div class="collapse" id="${item1.id}-info">
+                                        <div class="card card-body">
+                                        Const properties:
+                                        <div>
+                                        <p>name: ${item1.mainProperty.name}</p>
+                                        <p>unit: ${item1.mainProperty.unit}</p>
+                                        <p>description: ${item1.mainProperty.description}</p>
+                                        <p>constraint:
+                                            <ul>
+                                            <li>type:${item1.mainProperty.constraint.type} </li>
+                                            <li>min: ${item1.mainProperty.constraint.min}</li>
+                                            <li>max:${item1.mainProperty.constraint.max} </li>
+</ul>
+                                        </p>
+</div>
+                                        </div>
+                                    </div>
+                                    </p>
+                                    </li>`;
                                 }
                                 else {
-
+                                    data+=`<li id="${item1.id}">${item1.mainProperty.description} ${item1.mainProperty.value} ${item1.mainProperty.unit}<p>
+                                      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${item1.id}-info" aria-expanded="false" aria-controls="${item1.id}-info">
+                                        Info
+                                      </button>
+                                      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${item1.id}-edit" aria-expanded="false" aria-controls="${item1.id}-edit">
+                                        Edit
+                                      </button>
+                                      <div class="collapse" id="${item1.id}-info">
+                                        <div class="card card-body">
+                                            Const properties:
+                                            <div>
+                                        <p>name: ${item1.mainProperty.name}</p>
+                                        <p>unit: ${item1.mainProperty.unit}</p>
+                                        <p>description: ${item1.mainProperty.description}</p>
+                                        <p>constraint:
+                                            <ul>
+                                            <li>type:${item1.mainProperty.constraint.type} </li>
+                                            <li>min: ${item1.mainProperty.constraint.min}</li>
+                                            <li>max:${item1.mainProperty.constraint.max} </li>
+</ul>
+                                        </p>
+</div>
+                                        </div>
+                                        </div>
+                                        <div class="collapse" id="${item1.id}-edit">
+                                        <div class="card card-body">
+                                        Here you will be able to change something, but not in this relice :) 
+                                        </div>
+                                        </div>
+                                    </p>
+                                    </li>`;
                                 }
                             });
                             data+=`</ul><div class="d-flex justify-content-between align-items-center"><small class="text-muted">${lastUpdate}</small></div></div></div></div>`;
@@ -64,7 +110,7 @@ $(document).ready(function () {
     /*
     * Show all hubs information to screen
     */
-    function showHubsInfo() {
+    /*function showHubsInfo() {
         let data ="";
         hubList.forEach(function (item) {
             if(item.active){
@@ -73,7 +119,7 @@ $(document).ready(function () {
             }
         });
         $('#data').append(data);
-    }
+    }*/
     /*
     * On START function
     * */
@@ -107,8 +153,9 @@ $(document).ready(function () {
     */
     function changeDeviceProp(answer) {
         if(answer.error === undefined){
+            let device_id = answer.message.component;
             deviceList.forEach(function (item) {
-                if(item.metadata.id == answer.message.device){
+                if(item.metadata.id == device_id){
                     item.metadata.components.forEach(function (item1){
                         if(item1.id == answer.message.component){
                             item1.value = answer.message.value;
@@ -116,6 +163,7 @@ $(document).ready(function () {
                     });
                 }
             });
+            $(`#${device_id} > span`).text(answer.message.value);
         }
     }
     /*
@@ -136,6 +184,8 @@ $(document).ready(function () {
         switch (answer.action) {
             case "START":
                 onStart(answer);
+                showDevicesInfo();
+                //showHubsInfo();
                 break;
             case "HUB_CONNECTED": break;
             case "DEVICE_CONNECTED":
@@ -150,7 +200,5 @@ $(document).ready(function () {
             case "HUB_DISCONNECTED": break;
             default: break;
         }
-        showDevicesInfo();
-        showHubsInfo();
     }
 });
