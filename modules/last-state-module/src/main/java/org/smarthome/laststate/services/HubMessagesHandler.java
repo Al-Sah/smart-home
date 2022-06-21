@@ -34,7 +34,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onHubStart(HubMessage<HubProperties> hubMessage, Date date) {
         var res = dataBaseManager.setHubStateConnected(hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(
+            clientWebSocketHandler.sendBroadcastMessage(
                     ModuleMessageAction.HUB_CONNECTED,
                     new HubConnectedMessage(hubMessage.getData(), new HubStateDTO(res))
             );
@@ -53,7 +53,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
         var removedDevices = dataBaseManager.removeActiveDevices(hubMessage.getHub());
         heartbeats.remove(hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(
+            clientWebSocketHandler.sendBroadcastMessage(
                     ModuleMessageAction.HUB_DISCONNECTED,
                     new HubDisconnectedMessage(
                             hubMessage.getData(),
@@ -87,9 +87,9 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
 
             if(hb.isLost()){
                 hb.setLost(false);
-                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_RECONNECTED, resultMessage);
+                clientWebSocketHandler.sendBroadcastMessage(ModuleMessageAction.HUB_RECONNECTED, resultMessage);
             }else {
-                clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_HEARTBEAT, resultMessage);
+                clientWebSocketHandler.sendBroadcastMessage(ModuleMessageAction.HUB_HEARTBEAT, resultMessage);
             }
         }
         hb.moveToNextPeriod(date.getTime());
@@ -100,7 +100,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onHubMessage(HubMessage<String> hubMessage, Date date) {
         var res = dataBaseManager.updateHubState(hubMessage.getData(), hubMessage.getHub());
         try {
-            clientWebSocketHandler.sendMessage(ModuleMessageAction.HUB_MESSAGE, new HubStateDTO(res));
+            clientWebSocketHandler.sendBroadcastMessage(ModuleMessageAction.HUB_MESSAGE, new HubStateDTO(res));
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
         }
@@ -118,7 +118,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
         }
 
         try {
-            clientWebSocketHandler.sendMessage(
+            clientWebSocketHandler.sendBroadcastMessage(
                     ModuleMessageAction.DEVICE_MESSAGE,
                     new DeviceDataMessage(msg, new DeviceStateDTO(state))
             );
@@ -131,7 +131,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onDevicesConnected(HubMessage<DeviceMetadata> hubMessage, Date date) {
         try {
             var res = dataBaseManager.saveDevice(hubMessage.getData(), hubMessage.getHub());
-            clientWebSocketHandler.sendMessage(
+            clientWebSocketHandler.sendBroadcastMessage(
                     ModuleMessageAction.DEVICE_CONNECTED,
                     new DeviceConnectedMessage(hubMessage.getData(), new DeviceStateDTO(res))
             );
@@ -144,7 +144,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
     public void onDevicesDisconnected(HubMessage<DeviceDisconnectionDetails> hubMessage, Date date) {
         try {
             var res = dataBaseManager.updateDeviceState(hubMessage.getData());
-            clientWebSocketHandler.sendMessage(
+            clientWebSocketHandler.sendBroadcastMessage(
                     ModuleMessageAction.DEVICE_DISCONNECTED,
                     new DeviceDisconnectedMessage(
                             hubMessage.getData(),
@@ -170,7 +170,7 @@ public class HubMessagesHandler implements org.smarthome.sdk.module.consumer.Hub
                         .stream().map(DeviceStateDTO::new).collect(Collectors.toList());
                 hb.setLost(true);
                 heartbeats.replace(id, hb);
-                clientWebSocketHandler.sendMessage(
+                clientWebSocketHandler.sendBroadcastMessage(
                         ModuleMessageAction.HUB_LOST,
                         new HubHeartbeatMessage(new HubStateDTO(hub), details)
                 );

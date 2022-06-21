@@ -13,20 +13,18 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ClientWebSocketHandler extends AbstractWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientWebSocketHandler.class);
-
-    private final DataBaseManager dbManager;
-
     private final ObjectMapper jsonMapper = new ObjectMapper();
-    private WebSocketSession clientSession = null;
+    private final HashMap<String, WebSocketSession> clientSessions = new HashMap<>();
+
+    
+    private final DataBaseManager dbManager;
 
     public ClientWebSocketHandler(DataBaseManager dbManager) {
         this.dbManager = dbManager;
@@ -40,20 +38,17 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception){
-        logger.error("TransportError: {}, {}", exception.getMessage(), session.getRemoteAddress());
+        logger.error("TransportError: {}, {}", exception.toString(), session.getRemoteAddress());
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session){
-        if(clientSession != null){
-            logger.error("Connection exists");
-            return;
-        }
-        clientSession = session;
+
+        clientSessions.put(session.getId(), session);
         logger.info("Created new connection {}", session.getRemoteAddress());
 
         try {
-            sendMessage(
+            sendBroadcastMessage(
                     ModuleMessageAction.START,
                     new StartMessage(
                             generateDevicesDescription(),
@@ -88,18 +83,19 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status){
-        clientSession = null;
+        clientSessions.remove(session.getId());
         logger.error("Connection {} closed with status {}", session.getRemoteAddress(), status.getCode());
     }
 
-    public void sendMessage(ModuleMessageAction action, Object data) throws RuntimeException{
-
-        if(clientSession == null){
-            return;
+    public void sendBroadcastMessage(ModuleMessageAction action, Object data) throws RuntimeException{
+        for (Map.Entry<String, WebSocketSession> ws : clientSessions.entrySet()) {
+            sendMessage(ws.getValue(), action, data);
         }
+    }
 
+    private void sendMessage(WebSocketSession session, ModuleMessageAction action, Object data) throws RuntimeException{
         try {
-            clientSession.sendMessage(new TextMessage(jsonMapper.writeValueAsString(new ModuleMessage<>(action,data))));
+            session.sendMessage(new TextMessage(jsonMapper.writeValueAsString(new ModuleMessage<>(action,data))));
         } catch (IOException e) {
             throw new RuntimeException("Failed to send message. Error: " + e.getMessage());
         }
