@@ -12,3 +12,6 @@ spring:
 module:
   history:
     host: ${HISTORY_MODULE_SERVER}
+
+producer:
+  topic: modules-messages
