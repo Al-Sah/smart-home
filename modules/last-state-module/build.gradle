@@ -28,7 +28,7 @@ repositories {
 dependencies {
 
     implementation 'org.smarthome.sdk:models:1.1.0'
-    implementation 'org.smarthome.sdk:module:1.1.0'
+    implementation 'org.smarthome.sdk:module:1.1.1'
 
     implementation 'org.springframework.boot:spring-boot-starter-tomcat:2.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
