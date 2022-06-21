@@ -24,8 +24,11 @@ public class ModuleConsumer {
      */
     private final HubMessagesHandler handler;
 
-    public ModuleConsumer(HubMessagesHandler messagesHandler) {
+    private final ConsumerTopicsProvider topicsProvider;
+
+    public ModuleConsumer(HubMessagesHandler messagesHandler, ConsumerTopicsProvider topicsProvider) {
         this.handler = messagesHandler;
+        this.topicsProvider = topicsProvider;
     }
 
     /**
@@ -33,7 +36,7 @@ public class ModuleConsumer {
      * @param message HubMessage
      * @param ts producer record creation timestamp
      */
-    @KafkaListener(topics = "#{listenerTopics.get()}", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "#{topicsProvider.get()}", containerFactory = "kafkaListenerContainerFactory")
     public void listen(@Payload HubMessage<?> message, @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long ts) {
 
         var action = DeserializationUtils.getMessageAction(message.getAction());

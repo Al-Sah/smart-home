@@ -1,4 +1,4 @@
-package org.smarthome.sdk.module.producer;
+package org.smarthome.sdk.module.producer.config;
 
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.smarthome.sdk.models.Command;
@@ -13,7 +13,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
 @EnableKafka
-public class KafkaProducerConfig {
+public class KafkaProducerConfiguration {
 
 
     /**
@@ -21,7 +21,7 @@ public class KafkaProducerConfig {
      */
     private final KafkaProperties properties;
 
-    public KafkaProducerConfig(KafkaProperties properties) {
+    public KafkaProducerConfiguration(KafkaProperties properties) {
         this.properties = properties;
     }
 

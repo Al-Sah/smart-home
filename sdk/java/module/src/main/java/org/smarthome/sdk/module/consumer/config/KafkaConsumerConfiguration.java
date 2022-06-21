@@ -1,4 +1,4 @@
-package org.smarthome.sdk.module.consumer;
+package org.smarthome.sdk.module.consumer.config;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.smarthome.sdk.models.HubMessage;
@@ -15,14 +15,14 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 @Configuration
 @EnableKafka
-public class KafkaConsumerConfig {
+public class KafkaConsumerConfiguration {
 
     /**
      * properties from properties (application.yml) file
      */
     private final KafkaProperties properties;
 
-    public KafkaConsumerConfig(KafkaProperties properties) {
+    public KafkaConsumerConfiguration(KafkaProperties properties) {
         this.properties = properties;
     }
 

@@ -10,7 +10,7 @@ apply plugin: 'java-library'
 
 
 group = 'org.smarthome.sdk'
-version = '1.1.0'
+version = '1.1.1'
 sourceCompatibility = '14'
 
 
@@ -38,7 +38,7 @@ publishing {
         maven(MavenPublication) {
             groupId = 'org.smarthome.sdk'
             artifactId = 'module'
-            version = '1.1.0'
+            version = '1.1.1'
             from components.java
         }
     }
@@ -51,7 +51,10 @@ dependencies {
     implementation 'org.apache.kafka:kafka-streams'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.projectlombok:lombok:1.18.22'
+
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
 
     implementation project(":models")
 }
