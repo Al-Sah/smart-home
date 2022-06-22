@@ -3,33 +3,10 @@ $(document).ready(function () {
 * Connection to WebSocket
 */
     const ws = new WebSocket("ws://188.166.82.71:8083/ds");
-    //const ws = new WebSocket("ws://localhost:8082");
     ws.onopen = function () {
     }
     let deviceList = Array();
     let hubList = Array();
-    /*
-    * Change settings of component
-    */
-    $('.btnChangeSens').on('click', ".btnChangeSens", function(){
-        let parent_id = $(this).parent().attr('id');
-        let IDs = parent_id.split("--");
-        let value = $(`#${parent_id} > input`).val();
-        let timeNow = new Date();
-        let diff = 5;
-        let expireIn = new Date(timeNow.getTime() + diff*60000).getTime();
-        let objRequest = {
-            "hub": IDs[0],
-            "device": IDs[1],
-            "component": IDs[2],
-            "property": "deltaT",
-            "option": "",
-            "expire": expireIn,
-        }
-    })
-    function changeSens(elem) {
-
-    }
     /*
     * Show all devices information to screen
     */
@@ -103,15 +80,17 @@ $(document).ready(function () {
                                         </div>
                                         <div class="collapse" id="${item1.id}-edit">
                                         <div class="card card-body">
-                                        <form id="${item.state.owner}--${item.id}--${item1.id}">
-                                           <label for="${item1.id}-input">Enter a sencivety of the sensor:</label>
-                                           <input type="number" class="form-control" id="${item1.id}-input" placeholder="deltaT" value="${item1.writableProperties.value}" min="${item1.writableProperties.constraint.min}" max="${item1.writableProperties.constraint.max}" required>
-                                           <button class="btnChangeSens btn btn-primary" type="button">Submit</button>
+                                         <form id="${item.state.owner}--${item.id}--${item1.id}">`;
+                                    item1.writableProperties.forEach(function (item2,key) {
+                                        data+=`<label for="${item1.id}-input${key}">Enter ${item2.description}</label>
+                                           <input type="number" class="form-control" id="${item1.id}-input${key}" placeholder="${item2.name}" min=${item2.constraint.min} max=${item2.constraint.max} step="0.1">
+                                           <button class="btnChangeSens btn btn-primary" id="btn${item1.id}-input${key}" type="button">Submit</button>
                                         </form>
                                         </div>
                                         </div>
                                     </p>
                                     </li>`;
+                                    });
                                 }
                             });
                             data+=`</ul><div class="d-flex justify-content-between align-items-center"><small class="text-muted">${lastUpdate}</small></div></div></div></div>`;
@@ -195,6 +174,30 @@ $(document).ready(function () {
             }
         });
     }
+    /*
+* Change settings of component
+*/
+    $('.btnChangeSens').on('click', ".btnChangeSens", function(){
+        let parent_id = $(this).parent().attr('id');
+        let IDs = parent_id.split("--");
+        let ID_input = $(this).attr('id').replace('btn','');
+        let value = $(ID_input).val();
+        let timeNow = new Date();
+        let diff = 5;
+        let expireIn = new Date(timeNow.getTime() + diff*60000).getTime();
+        let objRequest = {
+            "hub": IDs[0],
+            "device": IDs[1],
+            "component": IDs[2],
+            "property": "deltaT",
+            "value": value,
+            "option": "",
+            "expire": expireIn,
+        }
+
+        let jsonStr = JSON.stringify(objRequest);
+        console.log(jsonStr);
+    })
     /*
     * When receive a message from server
     * */
