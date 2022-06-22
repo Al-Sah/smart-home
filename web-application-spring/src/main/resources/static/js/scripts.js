@@ -194,6 +194,7 @@ $(document).ready(function () {
             "option": "",
             "expire": expireIn,
         }
+
         let jsonStr = JSON.stringify(objRequest);
         console.log(jsonStr);
     })
