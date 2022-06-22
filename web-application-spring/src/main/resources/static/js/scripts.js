@@ -9,12 +9,27 @@ $(document).ready(function () {
     let deviceList = Array();
     let hubList = Array();
     /*
-    * Change settings of property
+    * Change settings of component
     */
-    $('.btnChangeProp').on('click', ".btnChangeProp", function(){
-        var parent_id = $(this).parent().parent().attr('id');
-        console.log(parent_id);
+    $('.btnChangeSens').on('click', ".btnChangeSens", function(){
+        let parent_id = $(this).parent().attr('id');
+        let IDs = parent_id.split("--");
+        let value = $(`#${parent_id} > input`).val();
+        let timeNow = new Date();
+        let diff = 5;
+        let expireIn = new Date(timeNow.getTime() + diff*60000).getTime();
+        let objRequest = {
+            "hub": IDs[0],
+            "device": IDs[1],
+            "component": IDs[2],
+            "property": "deltaT",
+            "option": "",
+            "expire": expireIn,
+        }
     })
+    function changeSens(elem) {
+
+    }
     /*
     * Show all devices information to screen
     */
@@ -81,14 +96,18 @@ $(document).ready(function () {
                                             <li>type:${item1.mainProperty.constraint.type} </li>
                                             <li>min: ${item1.mainProperty.constraint.min}</li>
                                             <li>max:${item1.mainProperty.constraint.max} </li>
-</ul>
+                                            </ul>
                                         </p>
-</div>
+                                        </div>
                                         </div>
                                         </div>
                                         <div class="collapse" id="${item1.id}-edit">
                                         <div class="card card-body">
-                                        Here you will be able to change something, but not in this relice :) 
+                                        <form id="${item.state.owner}--${item.id}--${item1.id}">
+                                           <label for="${item1.id}-input">Enter a sencivety of the sensor:</label>
+                                           <input type="number" class="form-control" id="${item1.id}-input" placeholder="deltaT" value="${item1.writableProperties.value}" min="${item1.writableProperties.constraint.min}" max="${item1.writableProperties.constraint.max}" required>
+                                           <button class="btnChangeSens btn btn-primary" type="button">Submit</button>
+                                        </form>
                                         </div>
                                         </div>
                                     </p>
