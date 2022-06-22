@@ -1,14 +1,21 @@
 package org.smarthome.controlpanel.entities;
 
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
+
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author Al-Sah
  */
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "profiles")
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProfileInfo {
 
 
@@ -20,4 +27,11 @@ public class ProfileInfo {
 	private String email;
 	private String name;
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+		ProfileInfo that = (ProfileInfo) o;
+		return id != null && Objects.equals(id, that.id);
+	}
 }

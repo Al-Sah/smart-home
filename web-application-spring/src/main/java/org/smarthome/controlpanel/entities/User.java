@@ -1,16 +1,22 @@
 package org.smarthome.controlpanel.entities;
 
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * @author Al-Sah
  */
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "users")
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class User {
 
 	@Id
@@ -29,6 +35,14 @@ public class User {
 
 
 	@OneToMany(mappedBy="user")
+	@ToString.Exclude
 	private Set<DeviceAlias> aliases;
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+		User user = (User) o;
+		return id != null && Objects.equals(id, user.id);
+	}
 }
