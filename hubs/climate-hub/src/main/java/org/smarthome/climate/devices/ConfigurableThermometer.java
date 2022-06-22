@@ -45,10 +45,8 @@ public class ConfigurableThermometer extends ThermometerImitator {
                 },
                 callback);
 
-
         this.sensitivity = (WritableDeviceProperty<Float>)components[0].getWritableProperties()[0];
         this.sensitivity.setValue(settings.getInitialSensitivity());
-
 
         timer.schedule(new DataImitationTask(timer, () ->{
             var current = temperatureProperty.getValue();
@@ -67,7 +65,7 @@ public class ConfigurableThermometer extends ThermometerImitator {
         }
 
         try {
-            this.sensitivity.setValue(Double.valueOf(command.getProperty()).floatValue());
+            this.sensitivity.setValue(Float.valueOf(command.getValue()));
             callback.send(id, components[0].getId(), sensitivity.getName(), null, sensitivity.getValue().toString());
         } catch (NumberFormatException exception){
             callback.send(id, components[0].getId(), sensitivity.getName(), null, "invalid property value (parsing fail)");
