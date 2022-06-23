@@ -55,40 +55,48 @@ function showDevicesInfo() {
 
 function generateSensorHtml(item){
 
-    // TODO check (if not present in the json -> replace with string 'undefined')
-    let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
-    // TODO check (if not present in the json -> replace with string 'undefined')
-    let lastConnection = new Date(item.state.lastConnection).toLocaleString();
-    // TODO add last disconnection
+    let state;
 
-    let content;
-
-    if(item.state === undefined){
-        content =`<p>Status unknown</p>`;
-    } else if(item.state.active){
-        content = `
-            <ul> ${generateDeviceComponentsHtml(item)} </ul>
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">${lastUpdate}</small>
+    if(!("state" in item)){
+        state = `
+            <div class="box-shadow">
+                <p>Device state in undefined (inactive)</p>
             </div>`;
     } else {
-        content = `
-            <div class="d-flex justify-content-between align-items-center">
-                <p>Device is not active. Last connection: ${lastConnection}</p>
-                <small class="text-muted">${lastUpdate}</small>
+        let lastUpdate = ("lastUpdate" in item.state) ? new Date(item.state.lastUpdate).toLocaleString() : "undefined";
+        let lastConnection = ("lastConnection" in item.state) ? new Date(item.state.lastConnection).toLocaleString() : "undefined";
+        state = `
+            <div class="box-shadow">
+                Device is ${item.state.active ? "active" : "inactive"}:
+                <p>
+                    <small class="text-muted">last connection: ${lastConnection} <br> last update: ${lastUpdate}</small>
+                </p>
             </div>`;
+    }
+
+    let icon = "img/default.png";
+    if(item.metadata.name.includes("thermometer")){
+        icon = "img/thermometer.png";
     }
 
     return `
         <div class="col-md-4" id="${item.metadata.id}">
             <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="img/topImg.png" alt="Card image cap">
                 <div class="card-body">
-                    <p>Device name: ${item.metadata.name}</p>
-                    ${content}
+                    <div class="row media border border-light rounded">
+                        <div class="col-md-auto">
+                            <p class="text-primary"> Type: ${item.metadata.name} <br> <small class="text-secondary"> id: ${item.metadata.id}</small></p>
+                            ${state}
+                        </div>
+                        <div class="col col-lg-2">
+                            <img class="ml-3 rounded" src="${icon}" alt="icon (._.)" width="80" height="80">
+                        </div>
+                    </div>
+                    ${generateDeviceComponentsHtml(item)}
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
 function generateDeviceComponentsHtml(obj){
@@ -99,10 +107,10 @@ function generateDeviceComponentsHtml(obj){
         let mainProperty = component.mainProperty;
 
         let editSection = '';
-        let buttons = ` <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>`;
+        let buttons = ` <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
         let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
         if(component.writableProperties !== undefined){
-            buttons += `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Edit </button>`;
+            buttons += `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
             editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
             baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
         }
