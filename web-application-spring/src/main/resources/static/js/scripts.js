@@ -44,7 +44,7 @@ function showDevicesInfo() {
     deviceList.forEach(function (item) {
         switch (item.metadata.type) {
             case "SENSOR":
-                data += renderSensor(item)
+                data += generateSensorHtml(item)
                 break;
             default: break;
         }
@@ -53,29 +53,7 @@ function showDevicesInfo() {
     $("#data").html(data);
 }
 
-function renderSensor(item){
-
-    let data = ""
-
-    // TODO as a notification ?
-    if(item.error !== undefined){
-        data+=`<div id='${item.metadata.id}'><p>Error detected: ${item.error}</p></div>`;
-    }
-
-    // FIXME code duplication
-    if(item.state === undefined){
-        data+=`
-            <div class="col-md-4" id="${item.metadata.id}">
-                <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" src="../img/topImg.png" alt="Card image cap">
-                    <div class="card-body">
-                        <p>Device name: ${item.metadata.name}</p>
-                        <p>Status unknown</p>
-                    </div>
-                </div>
-            </div>`;
-        return data;
-    }
+function generateSensorHtml(item){
 
     // TODO check (if not present in the json -> replace with string 'undefined')
     let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
@@ -83,68 +61,59 @@ function renderSensor(item){
     let lastConnection = new Date(item.state.lastConnection).toLocaleString();
     // TODO add last disconnection
 
-    // FIXME code duplication
-    if(!item.state.active){
-        data+=`
-            <div class="col-md-4" id="${item.metadata.id}">
-                <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" src="img/topImg.png" alt="Card image cap">
-                    <div class="card-body">
-                        <p>Device name: ${item.metadata.name}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p>Device is not active. Last connection: ${lastConnection}</p>
-                            <small class="text-muted">${lastUpdate}</small>
-                        </div>
-                    </div>
-                </div>
+    let content;
+
+    if(item.state === undefined){
+        content =`<p>Status unknown</p>`;
+    } else if(item.state.active){
+        content = `
+            <ul> ${generateDeviceComponentsHtml(item)} </ul>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">${lastUpdate}</small>
             </div>`;
-        return data;
+    } else {
+        content = `
+            <div class="d-flex justify-content-between align-items-center">
+                <p>Device is not active. Last connection: ${lastConnection}</p>
+                <small class="text-muted">${lastUpdate}</small>
+            </div>`;
     }
 
-    // FIXME code duplication
-    let components = renderDeviceComponents(item)
-    data+=`
+    return `
         <div class="col-md-4" id="${item.metadata.id}">
             <div class="card mb-4 box-shadow">
                 <img class="card-img-top" src="img/topImg.png" alt="Card image cap">
                 <div class="card-body">
                     <p>Device name: ${item.metadata.name}</p>
-                    <ul> ${components} </ul>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">${lastUpdate}</small>
-                    </div>
+                    ${content}
                 </div>
             </div>
         </div>`;
-
-    return data;
 }
 
-function renderDeviceComponents(obj){
+function generateDeviceComponentsHtml(obj){
     let data = '';
 
     obj.metadata.components.forEach(function (component) {
 
         let mainProperty = component.mainProperty;
-        let deviceId = obj.metadata.id;
-        let componentId = component.id;
-        let hubId = obj.state.owner;
 
-        let buttons =  `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>`;
         let editSection = '';
+        let buttons = ` <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>`;
         let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
         if(component.writableProperties !== undefined){
             buttons += `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Edit </button>`;
-            editSection = printEditPropertySection(hubId, deviceId, componentId, component.writableProperties)
+            editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
             baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
         }
+
        data+=` 
-        <ul id="${component.id}">
+        <li id="${component.id}">
             ${baseSection}
             <p>
                 ${buttons}
-                <div className="collapse" id="${component.id}-info">
-                    <div className="card card-body">
+                <div class="collapse" id="${component.id}-info">
+                    <div class="card card-body">
                         Const properties:
                         <div>
                             <p>name: ${mainProperty.name}</p>
@@ -162,48 +131,28 @@ function renderDeviceComponents(obj){
                 </div>
                 ${editSection}
             </p>
-       </ul>`
+       </li>`
     });
 
-        // FIXME code duplication
-        data+=`
-            <li id="${component.id}">
-                ${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}
-                <p>
-                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info">Info</button>
-                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit">Edit</button>
-                    
-                    <div class="collapse" id="${component.id}-info">
-                        <div class="card card-body">
-                            Const properties:
-                            <div>
-                                <p>name: ${mainProperty.name}</p>
-                                <p>unit: ${mainProperty.unit}</p>
-                                <p>description: ${mainProperty.description}</p>
-                                <p>constraint:
-                                    <ul>
-                                        <li>type:${mainProperty.constraint.type} </li>
-                                        <li>min: ${mainProperty.constraint.min}</li>
-                                        <li>max:${mainProperty.constraint.max} </li>
-                                    </ul>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="collapse" id="${component.id}-edit">
-                        <div class="card card-body">
-                        <form id="${obj.state.owner}--${obj.id}--${component.id}">`;
-
-                        component.writableProperties.forEach(function (property , key) {
-                            data+=`
-                                <label for="${component.id}-input${key}">Enter ${property.description}</label>
-                                <input type="number" class="form-control" id="${component.id}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-                                <button class="btnChangeSens btn btn-primary" id="btn${component.id}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
-                        });
-        data += "</form></div></div></p></li>"
-    });
     return data;
+}
+
+function printEditPropertySection(hubId, deviceId, componentId, properties){
+    let items;
+    properties.forEach(function (property , key) {
+        items+=`
+            <label for="${componentId}-input${key}">Enter ${property.description}</label>
+            <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
+            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
+    });
+    return `
+        <div class="collapse" id="${componentId}-edit">
+            <div class="card card-body">
+                <form id="${hubId}--${deviceId}--${componentId}">
+                    ${items}
+                </form>
+            </div>
+        </div>`;
 }
 
 /**
@@ -283,8 +232,9 @@ function updateDeviceProperty(deviceMessage) {
         return false;
     }
 
-    let component = filteredComponents[0];
+
     //searching for property
+    let component = filteredComponents[0];
     if(component.mainProperty.name === deviceMessage.property){
         component.mainProperty.value = deviceMessage.value;
         return true;
@@ -316,7 +266,7 @@ function onDeviceMessage(json){
     console.log(json.message)
 
     if(updateDeviceProperty(json.message)){
-        // FIXME ???
+        // FIXME !!!!!!!!!!!!!
         console.log(json.message.component);
         //$(`li#${json.message.component} > span`).text(json.value);
         $(`li#${json.message.component} > span`).text(json.value);
