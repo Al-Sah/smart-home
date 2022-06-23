@@ -1,7 +1,7 @@
 
 $(document).ready(function () {
 
-    const ws = new WebSocket("ws://localhost:8083/ds");
+    const ws = new WebSocket("ws://188.166.82.71:8083/ds");
 
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
@@ -17,6 +17,7 @@ $(document).ready(function () {
             case "HUB_CONNECTED": break;
             case "DEVICE_CONNECTED":
                 onDeviceConnected(data);
+                showDevicesInfo();
                 break;
             case "DEVICE_MESSAGE":
                 onDeviceMessage(data);
@@ -127,35 +128,42 @@ function renderDeviceComponents(obj){
         let mainProperty = component.mainProperty;
         let deviceId = obj.metadata.id;
         let componentId = component.id;
+        let hubId = obj.state.owner;
 
-        if(component.writableProperties === undefined){
-            // FIXME code duplication
-            data+=`
-                <li id="${component.id}"> 
-                    ${mainProperty.description} <span> ${mainProperty.value} </span> ${mainProperty.unit}
-                    <p>
-                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>
-                        <div class="collapse" id="${component.id}-info">
-                            <div class="card card-body">
-                                Const properties:
-                                <div>
-                                    <p>name: ${mainProperty.name}</p>
-                                    <p>unit: ${mainProperty.unit}</p>
-                                    <p>description: ${mainProperty.description}</p>
-                                    <p>constraint:
-                                        <ul>
-                                            <li>type:${mainProperty.constraint.type} </li>
-                                            <li>min: ${mainProperty.constraint.min}</li>
-                                            <li>max: ${mainProperty.constraint.max} </li>
-                                        </ul>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </p>
-                </li>`;
-            return data;
+        let buttons =  `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>`;
+        let editSection = '';
+        let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
+        if(component.writableProperties !== undefined){
+            buttons += `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Edit </button>`;
+            editSection = printEditPropertySection(hubId, deviceId, componentId, component.writableProperties)
+            baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
         }
+       data+=` 
+        <ul id="${component.id}">
+            ${baseSection}
+            <p>
+                ${buttons}
+                <div className="collapse" id="${component.id}-info">
+                    <div className="card card-body">
+                        Const properties:
+                        <div>
+                            <p>name: ${mainProperty.name}</p>
+                            <p>unit: ${mainProperty.unit}</p>
+                            <p>description: ${mainProperty.description}</p>
+                            <p>constraint:
+                                <ul>
+                                    <li>type:${mainProperty.constraint.type} </li>
+                                    <li>min: ${mainProperty.constraint.min}</li>
+                                    <li>max:${mainProperty.constraint.max} </li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                ${editSection}
+            </p>
+       </ul>`
+    });
 
         // FIXME code duplication
         data+=`
@@ -191,7 +199,7 @@ function renderDeviceComponents(obj){
                             data+=`
                                 <label for="${component.id}-input${key}">Enter ${property.description}</label>
                                 <input type="number" class="form-control" id="${component.id}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-                                <button class="btnChangeSens btn btn-primary" id="btn${component.id}-input${key}" type="button" onclick="sendRequestToChangeProperty('${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
+                                <button class="btnChangeSens btn btn-primary" id="btn${component.id}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
                         });
         data += "</form></div></div></p></li>"
     });
@@ -274,8 +282,23 @@ function updateDeviceProperty(deviceMessage) {
         console.error("ERROR: components filtering; searched component: " + deviceMessage.component);
         return false;
     }
+
+    let component = filteredComponents[0];
+    //searching for property
+    if(component.mainProperty.name === deviceMessage.property){
+        component.mainProperty.value = deviceMessage.value;
+        return true;
+    }
+
+    let filteredProperty = component.writableProperties.filter(property => {
+        return property.name === deviceMessage.property;
+    })
+    if(filteredProperty[0] === undefined){
+        console.error("ERROR: components filtering; searched component: " + deviceMessage.component);
+        return false;
+    }
     // updating value
-    filteredComponents[0].value = deviceMessage.value;
+    filteredProperty[0].value = deviceMessage.value;
     return true;
 }
 
@@ -294,7 +317,9 @@ function onDeviceMessage(json){
 
     if(updateDeviceProperty(json.message)){
         // FIXME ???
-        $(`#${json.message.component} > span`).text(json.value);
+        console.log(json.message.component);
+        //$(`li#${json.message.component} > span`).text(json.value);
+        $(`li#${json.message.component} > span`).text(json.value);
     }
     // TODO update state ????? ('lastUpdate' property at least)
 }
@@ -323,7 +348,7 @@ function onDeviceDisconnected(json) {
 /**
  * Change settings of component
  */
-function sendRequestToChangeProperty(device, component, property){
+function sendRequestToChangeProperty(hub, device, component, property){
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     console.log(component)
     console.log(property)
