@@ -6,13 +6,13 @@ $(document).ready(function () {
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
         let data = jsonMessage.data;
-        console.log(jsonMessage);
+        //console.log(jsonMessage);
 
         switch (jsonMessage.action) {
             case "START":
                 onStart(data);
                 showDevicesInfo();
-                //showHubsInfo();
+                showHubsInfo();
                 break;
             case "HUB_CONNECTED": break;
             case "DEVICE_CONNECTED":
@@ -36,7 +36,7 @@ let deviceList = Array();
 let hubList = Array();
 
 
-/*
+/**
 * Show all devices information to screen
 */
 function showDevicesInfo() {
@@ -93,6 +93,7 @@ function generateSensorHtml(item){
                         </div>
                     </div>
                     ${generateDeviceComponentsHtml(item)}
+                    ${generateDeviceHistoryHtml(item)}
                 </div>
             </div>
         </div>
@@ -107,10 +108,10 @@ function generateDeviceComponentsHtml(obj){
         let mainProperty = component.mainProperty;
 
         let editSection = '';
-        let buttons = ` <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
+        let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
         let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
         if(component.writableProperties !== undefined){
-            buttons += `<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
+            buttons += `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
             editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
             baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
         }
@@ -146,12 +147,11 @@ function generateDeviceComponentsHtml(obj){
 }
 
 function printEditPropertySection(hubId, deviceId, componentId, properties){
-    let items;
+    let items = "";
     properties.forEach(function (property , key) {
-        items+=`
-            <label for="${componentId}-input${key}">Enter ${property.description}</label>
+        items+=`<div><label for="${componentId}-input${key}">Enter ${property.description}</label>
             <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
+            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button></div>`;
     });
     return `
         <div class="collapse" id="${componentId}-edit">
@@ -163,18 +163,76 @@ function printEditPropertySection(hubId, deviceId, componentId, properties){
         </div>`;
 }
 
+function generateDeviceHistoryHtml(obj){
+    let data ="";
+    data+=`<div>
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas--${obj.metadata.id}" aria-controls="offcanvas--${obj.metadata.id}">
+                Load history of device
+            </button>
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas--${obj.metadata.id}" aria-labelledby="offcanvas${obj.metadata.id}Label">
+                 <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvas${obj.metadata.id}leLabel">${obj.metadata.name} history:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <div>
+                    Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
+                    </div>
+                </div>
+            </div>
+    </div>`;
+    return data;
+}
 /**
  * Show all hubs information to screen
  */
 function showHubsInfo() {
-/*    let data ="";
+    let data ="<div class=\"album py-5 bg-light\"><div class=\"container\"><div class=\"row\">";
     hubList.forEach(function (item) {
-        if(item.active){
-            let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
-            data+=`<div id=${item.id}><p>Hub name: ${item.id}</p><p>Last update: ${lastUpdate}</p></div>`
-        }
-    });
-    $('#data').append(data);*/
+        data+=generateHubHtml(item)
+    })
+    data+="</div></div></div>";
+    $("#data").append(data);
+}
+
+function generateHubHtml(item){
+    let state;
+
+    if(!("active" in item)){
+        state = `
+            <div class="box-shadow">
+                <p>Device state in undefined (inactive)</p>
+            </div>`;
+    } else {
+        let lastUpdate = ("lastUpdate" in item) ? new Date(item.lastUpdate).toLocaleString() : "undefined";
+        let lastConnection = ("lastConnection" in item) ? new Date(item.lastConnection).toLocaleString() : "undefined";
+        state = `
+            <div class="box-shadow">
+                Device is ${item.active ? "active" : "inactive"}:
+                <p>
+                    <small class="text-muted">last connection: ${lastConnection} <br> last update: ${lastUpdate}</small>
+                </p>
+            </div>`;
+    }
+
+    let icon = "img/default.png";
+    return `
+        <div class="col-md-4" id="${item.id}">
+            <div class="card mb-4 box-shadow">
+                <div class="card-body">
+                    <div class="row media border border-light rounded">
+                        <div class="col-md-auto">
+                            <p class="text-primary"> Type: HUB <br> <small class="text-secondary"> id: ${item.id}</small></p>
+                            ${state}
+                        </div>
+                        <div class="col col-lg-2">
+                            <img class="ml-3 rounded" src="${icon}" alt="icon (._.)" width="80" height="80">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 /**
@@ -226,7 +284,6 @@ function updateDeviceProperty(deviceMessage) {
     })
     if(filteredDevices[0] === undefined){
         console.error("ERROR: devices filtering; searched device: " + deviceMessage.device);
-        console.log(deviceList)
         return false;
     }
 
@@ -268,14 +325,10 @@ function onDeviceMessage(json){
     if(json.error !== undefined){
         console.log(json.error);
         return;
-        // TODO Create GUI element to show error ...
     }
-
-    console.log(json.message)
 
     if(updateDeviceProperty(json.message)){
         // FIXME !!!!!!!!!!!!!
-        console.log(json.message.component);
         //$(`li#${json.message.component} > span`).text(json.value);
         $(`li#${json.message.component} > span`).text(json.value);
     }
