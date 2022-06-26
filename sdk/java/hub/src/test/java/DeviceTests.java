@@ -2,6 +2,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.smarthome.sdk.hub.device.Device;
 import org.smarthome.sdk.hub.device.DeviceComponent;
+import org.smarthome.sdk.hub.device.WritableDeviceProperty;
 import org.smarthome.sdk.hub.producer.DTOFactory;
 import org.smarthome.sdk.hub.producer.DeviceCallback;
 import org.smarthome.sdk.models.Command;
@@ -31,13 +32,18 @@ public class DeviceTests {
     @Test
     public void testCorrectDeviceComponentCreation(){
         Assertions.assertDoesNotThrow(()-> new DeviceComponent(
-                "test-id-child1", "test", "test", null, null, null)
+                "test-id-child1", "test", "test",
+                new WritableDeviceProperty<>("test", "test", null, null), null, null)
         );
     }
 
     @Test
     public void testCorrectDeviceCreation(){
-        var c = new DeviceComponent("test-id-child1", "test", "test", null, null, null);
+        var c = new DeviceComponent(
+                "test-id-child1", "test", "test",
+                new WritableDeviceProperty<>("test", "test", null, null),
+                null, null
+        );
         Assertions.assertDoesNotThrow(()-> new TestDevice(
                 "test-id", DeviceType.SENSOR, "test-name", new DeviceComponent[]{c}, null)
         );
@@ -46,8 +52,11 @@ public class DeviceTests {
     @Test
     public void testFactory(){
         var device = new TestDevice("test-id", DeviceType.SENSOR, "test-name", new DeviceComponent[]{
-                new DeviceComponent("test-id-child1", "test", "test", null, null, null)
+                new DeviceComponent(
+                        "test-id-child1", "test", "test",
+                        new WritableDeviceProperty<>("test", "test", null, null),
+                        null, null)
         }, null);
-        Assertions.assertDoesNotThrow(()-> DTOFactory.getDeviceMetadata(device));
+        Assertions.assertThrows(NullPointerException.class, ()-> DTOFactory.getDeviceMetadata(device));
     }
 }
