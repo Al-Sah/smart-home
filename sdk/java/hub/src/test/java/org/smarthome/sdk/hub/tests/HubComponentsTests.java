@@ -1,3 +1,5 @@
+package org.smarthome.sdk.hub.tests;
+
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.clients.producer.MockProducer;

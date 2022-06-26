@@ -1,3 +1,5 @@
+package org.smarthome.sdk.hub.tests;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.smarthome.sdk.hub.consumer.HubConsumerConfiguration;
