@@ -1,9 +1,6 @@
 package org.smarthome.sdk.hub.producer;
 
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +20,7 @@ import java.util.concurrent.*;
 public class HubProducer {
 
     private final HubProducerConfiguration configuration;
-    private final KafkaProducer<String, HubMessage<?>> producer;
+    private final Producer<String, HubMessage<?>> producer;
     private static final Logger logger = LoggerFactory.getLogger(HubProducer.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -59,7 +56,22 @@ public class HubProducer {
         this.producer = new KafkaProducer<>(prop, new StringSerializer(), new HubMessageSerializer());
 
         sendInitialMessage();
+        setupHeartBeatSender();
+    }
 
+    public HubProducer(HubProducerConfiguration configuration, Producer<String, HubMessage<?>> producer) throws HubProducerException {
+
+        if(configuration == null){
+            throw new HubProducerException("Configuration is null");
+        }
+        this.configuration = configuration;
+        this.producer = producer;
+
+        sendInitialMessage();
+        setupHeartBeatSender();
+    }
+
+    private void setupHeartBeatSender(){
         var hb = configuration.getHeartBeatPeriod();
         if(configuration.getHeartBeatPeriod() > 0){
             scheduler.scheduleAtFixedRate(this::sendHeartBeat, hb, hb, configuration.getHeartBeatUnit());

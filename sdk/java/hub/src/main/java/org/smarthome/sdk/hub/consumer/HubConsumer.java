@@ -1,5 +1,6 @@
 package org.smarthome.sdk.hub.consumer;
 
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,15 +15,13 @@ import java.util.Objects;
 
 public class HubConsumer {
 
-    private final HubConsumerConfiguration configuration;
-    private final KafkaConsumer<String, Command> consumer;
-
-    private final Thread listener;
+    private static final Logger logger = LoggerFactory.getLogger(HubConsumer.class);
+    private final Thread listener = new Thread(this::readRecordsInWhileLoop);
+    private final Object lock = new Object();
     private boolean isRunning = true;
 
-    private final Object lock = new Object();
-
-    private static final Logger logger = LoggerFactory.getLogger(HubConsumer.class);
+    private final HubConsumerConfiguration configuration;
+    private final Consumer<String, Command> consumer;
 
 
     public HubConsumer(HubConsumerConfiguration configuration) throws HubConsumerException {
@@ -39,10 +38,21 @@ public class HubConsumer {
         } catch (Exception e) {
             throw new HubConsumerException(e.getMessage());
         }
-
-        listener = new Thread(this::readRecordsInWhileLoop);
         listener.start();
     }
+
+    public HubConsumer(HubConsumerConfiguration configuration, Consumer<String, Command> consumer) throws HubConsumerException {
+
+        this.configuration = configuration;
+        try {
+            this.consumer = consumer;
+            consumer.subscribe(List.of(configuration.getTopic()));
+        } catch (Exception e) {
+            throw new HubConsumerException(e.getMessage());
+        }
+        listener.start();
+    }
+
 
 
 
