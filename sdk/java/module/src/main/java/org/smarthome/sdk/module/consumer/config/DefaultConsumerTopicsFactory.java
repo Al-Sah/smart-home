@@ -7,11 +7,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class DefaultBeansCreator {
+public class DefaultConsumerTopicsFactory {
 
     private final ModuleConsumerConfiguration configuration;
 
-    public DefaultBeansCreator(ModuleConsumerConfiguration configuration) {
+    public DefaultConsumerTopicsFactory(ModuleConsumerConfiguration configuration) {
         this.configuration = configuration;
     }
 
