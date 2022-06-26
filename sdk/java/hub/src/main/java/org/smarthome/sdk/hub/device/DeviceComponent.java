@@ -51,6 +51,27 @@ public class DeviceComponent {
 		this.mainProperty = mainProperty;
 		this.constProperties = constProperties;
 		this.writableProperties = writableProperties;
+		validate();
+	}
+
+	private void validate(){
+		var sb = new StringBuilder();
+		if(datatype == null){
+			sb.append("\nfield 'datatype' is null");
+		}
+		if(mainProperty == null){
+			sb.append("\nfield 'mainProperty' is null");
+		}
+		if(id == null || id.isBlank()){
+			sb.append("\nfield 'id' is null or blank");
+		}
+		if(name == null || name.isBlank()){
+			sb.append("\nfield 'name' is null or blank");
+		}
+		var result = sb.toString();
+		if(!result.isEmpty()){
+			throw new IllegalArgumentException("invalid configuration; errors:" + result);
+		}
 	}
 
 

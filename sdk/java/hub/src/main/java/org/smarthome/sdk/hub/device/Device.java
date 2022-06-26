@@ -41,12 +41,33 @@ public abstract class Device {
 	 * @param components device components
 	 * @param callback functions to send information
 	 */
-	public Device(String id, DeviceType type, String name, DeviceComponent[] components, DeviceCallback callback) {
+	public Device(String id, DeviceType type, String name, DeviceComponent[] components, DeviceCallback callback) throws IllegalArgumentException {
 		this.id = id;
 		this.type = type;
 		this.name = name;
 		this.components = components;
 		this.callback = callback;
+		validate();
+	}
+
+	private void validate() throws IllegalArgumentException{
+		var sb = new StringBuilder();
+		if(type == null){
+			sb.append("\nfield 'type' is null");
+		}
+		if(id == null || id.isBlank()){
+			sb.append("\nfield 'topic' is null or blank");
+		}
+		if(name == null || name.isBlank()){
+			sb.append("\nfield 'name' is null or empty");
+		}
+		if(components == null || components.length == 0){
+			sb.append("\nfield 'components' is null or size is 0");
+		}
+		var result = sb.toString();
+		if(!result.isEmpty()){
+			throw new IllegalArgumentException("invalid configuration; errors: \n" + result);
+		}
 	}
 
 	/**
