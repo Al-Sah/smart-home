@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Date;
+
 @Service
 public class HistoryProvider {
 
@@ -31,12 +33,24 @@ public class HistoryProvider {
         return sb.toString();
     }
 
-    public ResponseEntity<Object[]> getDeviceHistory(HistoryRequest historyRequest){
+    public Object[] getDeviceHistory(HistoryRequest historyRequest){
+
+        //TODO remove
+        if(historyRequest.from() == null && historyRequest.to() == null){
+            historyRequest = new HistoryRequest(historyRequest.type(), historyRequest.id(), 0L, new Date().getTime());
+        } else {
+            if(historyRequest.from() == null){
+                historyRequest = new HistoryRequest(historyRequest.type(), historyRequest.id(), 0L,historyRequest.to());
+            }
+            if(historyRequest.to() == null){
+                historyRequest = new HistoryRequest(historyRequest.type(), historyRequest.id(), historyRequest.from(), new Date().getTime());
+            }
+        }
 
         var uri = UriComponentsBuilder.fromUriString(template)
                 .buildAndExpand(historyRequest.type(), historyRequest.id())
                 .toUriString() + getQueryParams(historyRequest);
 
-        return new RestTemplate().getForEntity(uri, Object[].class); // TODO handle errors
+        return new RestTemplate().getForObject(uri, Object[].class); // TODO handle errors
     }
 }
