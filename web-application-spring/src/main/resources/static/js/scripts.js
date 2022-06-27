@@ -1,22 +1,23 @@
 
 $(document).ready(function () {
 
-    const ws = new WebSocket("ws://localhost:8083/ds");
+    const ws = new WebSocket("ws://188.166.82.71:8083/ds");
 
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
         let data = jsonMessage.data;
-        console.log(jsonMessage);
+        //console.log(jsonMessage);
 
         switch (jsonMessage.action) {
             case "START":
                 onStart(data);
                 showDevicesInfo();
-                //showHubsInfo();
+                showHubsInfo();
                 break;
             case "HUB_CONNECTED": break;
             case "DEVICE_CONNECTED":
                 onDeviceConnected(data);
+                showDevicesInfo();
                 break;
             case "DEVICE_MESSAGE":
                 onDeviceMessage(data);
@@ -35,7 +36,7 @@ let deviceList = Array();
 let hubList = Array();
 
 
-/*
+/**
 * Show all devices information to screen
 */
 function showDevicesInfo() {
@@ -43,7 +44,7 @@ function showDevicesInfo() {
     deviceList.forEach(function (item) {
         switch (item.metadata.type) {
             case "SENSOR":
-                data += renderSensor(item)
+                data += generateSensorHtml(item)
                 break;
             default: break;
         }
@@ -52,164 +53,191 @@ function showDevicesInfo() {
     $("#data").html(data);
 }
 
-function renderSensor(item){
+function generateSensorHtml(item){
 
-    let data = ""
+    let state;
 
-    // TODO as a notification ?
-    if(item.error !== undefined){
-        data+=`<div id='${item.metadata.id}'><p>Error detected: ${item.error}</p></div>`;
-    }
-
-    // FIXME code duplication
-    if(item.state === undefined){
-        data+=`
-            <div class="col-md-4" id="${item.metadata.id}">
-                <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" src="../img/topImg.png" alt="Card image cap">
-                    <div class="card-body">
-                        <p>Device name: ${item.metadata.name}</p>
-                        <p>Status unknown</p>
-                    </div>
-                </div>
+    if(!("state" in item)){
+        state = `
+            <div class="box-shadow">
+                <p>Device state in undefined (inactive)</p>
             </div>`;
-        return data;
-    }
-
-    // TODO check (if not present in the json -> replace with string 'undefined')
-    let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
-    // TODO check (if not present in the json -> replace with string 'undefined')
-    let lastConnection = new Date(item.state.lastConnection).toLocaleString();
-    // TODO add last disconnection
-
-    // FIXME code duplication
-    if(!item.state.active){
-        data+=`
-            <div class="col-md-4" id="${item.metadata.id}">
-                <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" src="img/topImg.png" alt="Card image cap">
-                    <div class="card-body">
-                        <p>Device name: ${item.metadata.name}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p>Device is not active. Last connection: ${lastConnection}</p>
-                            <small class="text-muted">${lastUpdate}</small>
-                        </div>
-                    </div>
-                </div>
+    } else {
+        let lastUpdate = ("lastUpdate" in item.state) ? new Date(item.state.lastUpdate).toLocaleString() : "undefined";
+        let lastConnection = ("lastConnection" in item.state) ? new Date(item.state.lastConnection).toLocaleString() : "undefined";
+        state = `
+            <div class="box-shadow">
+                Device is ${item.state.active ? "active" : "inactive"}:
+                <p>
+                    <small class="text-muted">last connection: ${lastConnection} <br> last update: ${lastUpdate}</small>
+                </p>
             </div>`;
-        return data;
     }
 
-    // FIXME code duplication
-    let components = renderDeviceComponents(item)
-    data+=`
+    let icon = "img/default.png";
+    if(item.metadata.name.includes("thermometer")){
+        icon = "img/thermometer.png";
+    }
+
+    return `
         <div class="col-md-4" id="${item.metadata.id}">
             <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="img/topImg.png" alt="Card image cap">
                 <div class="card-body">
-                    <p>Device name: ${item.metadata.name}</p>
-                    <ul> ${components} </ul>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">${lastUpdate}</small>
+                    <div class="row media border border-light rounded">
+                        <div class="col-md-auto">
+                            <p class="text-primary"> Type: ${item.metadata.name} <br> <small class="text-secondary"> id: ${item.metadata.id}</small></p>
+                            ${state}
+                        </div>
+                        <div class="col col-lg-2">
+                            <img class="ml-3 rounded" src="${icon}" alt="icon (._.)" width="80" height="80">
+                        </div>
                     </div>
+                    ${generateDeviceComponentsHtml(item)}
+                    ${generateDeviceHistoryHtml(item)}
                 </div>
             </div>
-        </div>`;
-
-    return data;
+        </div>
+    `;
 }
 
-function renderDeviceComponents(obj){
+function generateDeviceComponentsHtml(obj){
     let data = '';
 
     obj.metadata.components.forEach(function (component) {
 
         let mainProperty = component.mainProperty;
-        let deviceId = obj.metadata.id;
-        let componentId = component.id;
 
-        if(component.writableProperties === undefined){
-            // FIXME code duplication
-            data+=`
-                <li id="${component.id}"> 
-                    ${mainProperty.description} <span> ${mainProperty.value} </span> ${mainProperty.unit}
-                    <p>
-                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Info </button>
-                        <div class="collapse" id="${component.id}-info">
-                            <div class="card card-body">
-                                Const properties:
-                                <div>
-                                    <p>name: ${mainProperty.name}</p>
-                                    <p>unit: ${mainProperty.unit}</p>
-                                    <p>description: ${mainProperty.description}</p>
-                                    <p>constraint:
-                                        <ul>
-                                            <li>type:${mainProperty.constraint.type} </li>
-                                            <li>min: ${mainProperty.constraint.min}</li>
-                                            <li>max: ${mainProperty.constraint.max} </li>
-                                        </ul>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </p>
-                </li>`;
-            return data;
+        let editSection = '';
+        let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
+        let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
+        if(component.writableProperties !== undefined){
+            buttons += `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
+            editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
+            baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
         }
 
-        // FIXME code duplication
-        data+=`
-            <li id="${component.id}">
-                ${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}
-                <p>
-                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info">Info</button>
-                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit">Edit</button>
-                    
-                    <div class="collapse" id="${component.id}-info">
-                        <div class="card card-body">
-                            Const properties:
-                            <div>
-                                <p>name: ${mainProperty.name}</p>
-                                <p>unit: ${mainProperty.unit}</p>
-                                <p>description: ${mainProperty.description}</p>
-                                <p>constraint:
-                                    <ul>
-                                        <li>type:${mainProperty.constraint.type} </li>
-                                        <li>min: ${mainProperty.constraint.min}</li>
-                                        <li>max:${mainProperty.constraint.max} </li>
-                                    </ul>
-                                </p>
-                            </div>
+       data+=` 
+        <li id="${component.id}">
+            ${baseSection}
+            <p>
+                ${buttons}
+                <div class="collapse" id="${component.id}-info">
+                    <div class="card card-body">
+                        Const properties:
+                        <div>
+                            <p>name: ${mainProperty.name}</p>
+                            <p>unit: ${mainProperty.unit}</p>
+                            <p>description: ${mainProperty.description}</p>
+                            <p>constraint:
+                                <ul>
+                                    <li>type:${mainProperty.constraint.type} </li>
+                                    <li>min: ${mainProperty.constraint.min}</li>
+                                    <li>max:${mainProperty.constraint.max} </li>
+                                </ul>
+                            </p>
                         </div>
                     </div>
-                    
-                    <div class="collapse" id="${component.id}-edit">
-                        <div class="card card-body">
-                        <form id="${obj.state.owner}--${obj.id}--${component.id}">`;
-
-                        component.writableProperties.forEach(function (property , key) {
-                            data+=`
-                                <label for="${component.id}-input${key}">Enter ${property.description}</label>
-                                <input type="number" class="form-control" id="${component.id}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-                                <button class="btnChangeSens btn btn-primary" id="btn${component.id}-input${key}" type="button" onclick="sendRequestToChangeProperty('${deviceId}', '${componentId}', '${property.name}')">Submit</button>`;
-                        });
-        data += "</form></div></div></p></li>"
+                </div>
+                ${editSection}
+            </p>
+       </li>`
     });
+
     return data;
 }
 
+function printEditPropertySection(hubId, deviceId, componentId, properties){
+    let items = "";
+    properties.forEach(function (property , key) {
+        items+=`<div><label for="${componentId}-input${key}">Enter ${property.description}</label>
+            <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
+            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button></div>`;
+    });
+    return `
+        <div class="collapse" id="${componentId}-edit">
+            <div class="card card-body">
+                <form id="${hubId}--${deviceId}--${componentId}">
+                    ${items}
+                </form>
+            </div>
+        </div>`;
+}
+
+function generateDeviceHistoryHtml(obj){
+    let data = "";
+    data+=`<div> <a href="history.html?${obj.metadata.id}">Device history</a></div>`;
+    return data;
+}
+/*function generateDeviceHistoryHtml(obj){
+    let data ="";
+    data+=`<div>
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas--${obj.metadata.id}" aria-controls="offcanvas--${obj.metadata.id}">
+                Load history of device
+            </button>
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas--${obj.metadata.id}" aria-labelledby="offcanvas${obj.metadata.id}Label">
+                 <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvas${obj.metadata.id}leLabel">${obj.metadata.name} history:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <div>
+                    Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
+                    </div>
+                </div>
+            </div>
+    </div>`;
+    return data;
+}*/
 /**
  * Show all hubs information to screen
  */
 function showHubsInfo() {
-/*    let data ="";
+    let data ="<div class=\"album py-5 bg-light\"><div class=\"container\"><div class=\"row\">";
     hubList.forEach(function (item) {
-        if(item.active){
-            let lastUpdate = new Date(item.state.lastUpdate).toLocaleString();
-            data+=`<div id=${item.id}><p>Hub name: ${item.id}</p><p>Last update: ${lastUpdate}</p></div>`
-        }
-    });
-    $('#data').append(data);*/
+        data+=generateHubHtml(item)
+    })
+    data+="</div></div></div>";
+    $("#data").append(data);
+}
+
+function generateHubHtml(item){
+    let state;
+
+    if(!("active" in item)){
+        state = `
+            <div class="box-shadow">
+                <p>Device state in undefined (inactive)</p>
+            </div>`;
+    } else {
+        let lastUpdate = ("lastUpdate" in item) ? new Date(item.lastUpdate).toLocaleString() : "undefined";
+        let lastConnection = ("lastConnection" in item) ? new Date(item.lastConnection).toLocaleString() : "undefined";
+        state = `
+            <div class="box-shadow">
+                Device is ${item.active ? "active" : "inactive"}:
+                <p>
+                    <small class="text-muted">last connection: ${lastConnection} <br> last update: ${lastUpdate}</small>
+                </p>
+            </div>`;
+    }
+
+    let icon = "img/default.png";
+    return `
+        <div class="col-md-4" id="${item.id}">
+            <div class="card mb-4 box-shadow">
+                <div class="card-body">
+                    <div class="row media border border-light rounded">
+                        <div class="col-md-auto">
+                            <p class="text-primary"> Type: HUB <br> <small class="text-secondary"> id: ${item.id}</small></p>
+                            ${state}
+                        </div>
+                        <div class="col col-lg-2">
+                            <img class="ml-3 rounded" src="${icon}" alt="icon (._.)" width="80" height="80">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 /**
@@ -261,7 +289,6 @@ function updateDeviceProperty(deviceMessage) {
     })
     if(filteredDevices[0] === undefined){
         console.error("ERROR: devices filtering; searched device: " + deviceMessage.device);
-        console.log(deviceList)
         return false;
     }
 
@@ -274,8 +301,24 @@ function updateDeviceProperty(deviceMessage) {
         console.error("ERROR: components filtering; searched component: " + deviceMessage.component);
         return false;
     }
+
+
+    //searching for property
+    let component = filteredComponents[0];
+    if(component.mainProperty.name === deviceMessage.property){
+        component.mainProperty.value = deviceMessage.value;
+        return true;
+    }
+
+    let filteredProperty = component.writableProperties.filter(property => {
+        return property.name === deviceMessage.property;
+    })
+    if(filteredProperty[0] === undefined){
+        console.error("ERROR: components filtering; searched component: " + deviceMessage.component);
+        return false;
+    }
     // updating value
-    filteredComponents[0].value = deviceMessage.value;
+    filteredProperty[0].value = deviceMessage.value;
     return true;
 }
 
@@ -287,14 +330,12 @@ function onDeviceMessage(json){
     if(json.error !== undefined){
         console.log(json.error);
         return;
-        // TODO Create GUI element to show error ...
     }
 
-    console.log(json.message)
-
     if(updateDeviceProperty(json.message)){
-        // FIXME ???
-        $(`#${json.message.component} > span`).text(json.value);
+        // FIXME !!!!!!!!!!!!!
+        //$(`li#${json.message.component} > span`).text(json.value);
+        $(`li#${json.message.component} > span`).text(json.value);
     }
     // TODO update state ????? ('lastUpdate' property at least)
 }
@@ -323,7 +364,7 @@ function onDeviceDisconnected(json) {
 /**
  * Change settings of component
  */
-function sendRequestToChangeProperty(device, component, property){
+function sendRequestToChangeProperty(hub, device, component, property){
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     console.log(component)
     console.log(property)
@@ -347,3 +388,4 @@ function sendRequestToChangeProperty(device, component, property){
 
     console.log(JSON.stringify(objRequest));*/
 }
+
