@@ -164,6 +164,11 @@ function printEditPropertySection(hubId, deviceId, componentId, properties){
 }
 
 function generateDeviceHistoryHtml(obj){
+    let data = "";
+    data+=`<div> <a href="history.html?${obj.metadata.id}">Device history</a></div>`;
+    return data;
+}
+/*function generateDeviceHistoryHtml(obj){
     let data ="";
     data+=`<div>
             <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas--${obj.metadata.id}" aria-controls="offcanvas--${obj.metadata.id}">
@@ -182,7 +187,7 @@ function generateDeviceHistoryHtml(obj){
             </div>
     </div>`;
     return data;
-}
+}*/
 /**
  * Show all hubs information to screen
  */
@@ -383,3 +388,4 @@ function sendRequestToChangeProperty(hub, device, component, property){
 
     console.log(JSON.stringify(objRequest));*/
 }
+
