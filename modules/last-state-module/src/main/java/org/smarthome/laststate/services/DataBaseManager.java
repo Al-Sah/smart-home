@@ -2,6 +2,9 @@ package org.smarthome.laststate.services;
 
 import org.smarthome.laststate.entities.HubState;
 import org.smarthome.laststate.entities.DeviceState;
+import org.smarthome.laststate.exceptions.DeviceNotFoundException;
+import org.smarthome.laststate.models.DeviceStateDTO;
+import org.smarthome.laststate.models.FullDeviceDescription;
 import org.smarthome.laststate.repositories.DevicesStateRepository;
 import org.smarthome.laststate.repositories.DevicesErrorsRepository;
 import org.smarthome.laststate.repositories.DevicesRepository;
@@ -32,6 +35,14 @@ public class DataBaseManager {
         this.hubStateRepository = hubStateRepository;
     }
 
+    public FullDeviceDescription getDevice(String id){
+        var deviceState = devicesStateRepository.findById(id).orElse(null);
+        return new FullDeviceDescription(
+                devicesRepository.findById(id).orElseThrow(()-> new DeviceNotFoundException(id)),
+                deviceState == null ? null : new DeviceStateDTO(deviceState),
+                null
+        );
+    }
 
     public List<DeviceMetadata> getAllDevices(){
         return devicesRepository.findAll();
