@@ -1,8 +1,7 @@
 package org.smarthome.laststate.models;
 
 import lombok.Value;
-import org.smarthome.sdk.models.DeviceMessage;
-import org.smarthome.sdk.models.DeviceMetadata;
+
 import java.util.List;
 
 /**
@@ -22,11 +21,4 @@ import java.util.List;
      */
     List<FullDeviceDescription> devices;
     List<HubStateDTO> hubsState;
-
-
-    @Value public static class FullDeviceDescription{
-        DeviceMetadata metadata;
-        DeviceMessage lastError;
-        DeviceStateDTO state;
-    }
 }

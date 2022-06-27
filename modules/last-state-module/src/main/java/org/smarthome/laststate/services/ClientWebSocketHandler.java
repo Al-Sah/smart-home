@@ -60,21 +60,21 @@ public class ClientWebSocketHandler extends AbstractWebSocketHandler {
         }
     }
 
-    private List<StartMessage.FullDeviceDescription> generateDevicesDescription(){
+    private List<FullDeviceDescription> generateDevicesDescription(){
         var devices = dbManager.getAllDevices();
         var errors = dbManager.getAllDevicesErrors();
         var devicesState = dbManager.getAllDevicesState().stream().map(DeviceStateDTO::new).collect(Collectors.toList());
 
-        var res = new ArrayList<StartMessage.FullDeviceDescription>();
+        var res = new ArrayList<FullDeviceDescription>();
 
         for (DeviceMetadata device : devices) {
-            res.add(new StartMessage.FullDeviceDescription(
+            res.add(new FullDeviceDescription(
                     device,
-                    errors.stream()
-                            .filter((message -> Objects.equals(message.getDevice(), device.getId())))
-                            .findFirst().orElse(null),
                     devicesState.stream()
                             .filter((state -> Objects.equals(state.getId(), device.getId())))
+                            .findFirst().orElse(null),
+                    errors.stream()
+                            .filter((message -> Objects.equals(message.getDevice(), device.getId())))
                             .findFirst().orElse(null)
             ));
         }
