@@ -108,12 +108,13 @@ function generateDeviceComponentsHtml(obj){
         let mainProperty = component.mainProperty;
 
         let editSection = '';
+        let trimmedValue = parseFloat(mainProperty.value).toFixed(1);
         let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
-        let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${mainProperty.value} </span> ${mainProperty.unit}`;
+        let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${trimmedValue} </span> ${mainProperty.unit}`;
         if(component.writableProperties !== undefined){
             buttons += `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
             editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
-            baseSection = `${mainProperty.description} ${mainProperty.value} ${mainProperty.unit}`;
+            baseSection = `${mainProperty.description} ${trimmedValue} ${mainProperty.unit}`;
         }
 
        data+=` 
@@ -151,7 +152,7 @@ function printEditPropertySection(hubId, deviceId, componentId, properties){
     properties.forEach(function (property , key) {
         items+=`<div><label for="${componentId}-input${key}">Enter ${property.description}</label>
             <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(${hubId},'${deviceId}', '${componentId}', '${property.name}')">Submit</button></div>`;
+            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}"  type="button" onclick="sendRequestToChangeProperty(this, '${hubId}','${deviceId}', '${componentId}', '${property.name}','${componentId}-input${key}')">Submit</button></div>`;
     });
     return `
         <div class="collapse" id="${componentId}-edit">
@@ -335,9 +336,10 @@ function onDeviceMessage(json){
     if(updateDeviceProperty(json.message)){
         // FIXME !!!!!!!!!!!!!
         //$(`li#${json.message.component} > span`).text(json.value);
-        $(`li#${json.message.component} > span`).text(json.value);
+        let trimmedValue = parseFloat(json.value).toFixed(1);
+        $(`li#${json.message.component} > span`).text(trimmedValue);
     }
-    // TODO update state ????? ('lastUpdate' property at least)
+
 }
 
 
@@ -356,20 +358,44 @@ function onDeviceDisconnected(json) {
         return false;
     }
     filteredDevices[0].state.active = false;
-    // TODO update other 'state' parameters
-    // TODO update UI ?
-}
 
+}
 
 /**
  * Change settings of component
  */
-function sendRequestToChangeProperty(hub, device, component, property){
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    console.log(component)
-    console.log(property)
-    console.log(device)
-    // TODO pass new value ???
+function sendRequestToChangeProperty(btn, hub, device, component, property, input_id){
+    let btnID = btn.getAttribute('id');
+    let value = $(`#${input_id}`).val();
+    let diff = 5;
+    let expireIn = new Date(new Date().getTime() + diff*60000).getTime();
+    let objRequest = {
+        "hub": hub,
+        "device": device,
+        "component": component,
+        "property": property,
+        "value": value,
+        "options": "",
+        "expire": expireIn,
+    }
+    $.ajax({
+        url:'http://localhost:8080/command',
+        type: 'POST',
+        cache: false,
+        data: JSON.stringify(objRequest),
+        dataType: 'json',
+        beforeSend: function() {
+            $(`#${btnID}`).prop('disabled',true);
+        },
+        success: function(data) {
+            console.log(data);
+            $(`#${btnID}`).prop('disabled',false);
+        },
+        error: function () {
+            console.log('error');
+            $(`#${btnID}`).prop('disabled',false);
+        }
+    });
 
 /*    let parent_id = $(this).parent().attr('id');
     let IDs = parent_id.split("--");
