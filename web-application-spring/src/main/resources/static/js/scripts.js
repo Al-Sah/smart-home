@@ -166,7 +166,7 @@ function printEditPropertySection(hubId, deviceId, componentId, properties){
 
 function generateDeviceHistoryHtml(obj){
     let data = "";
-    data+=`<div> <a href="history.html?${obj.metadata.id}">Device history</a></div>`;
+    data+=`<div> <a href="history.html?id=${obj.metadata.id}">Device history</a></div>`;
     return data;
 }
 /*function generateDeviceHistoryHtml(obj){

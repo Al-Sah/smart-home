@@ -1,19 +1,16 @@
-/**
- * GET id history search
- * */
-function getDeviceID() {
-    return window.location.search.replace("?","");
-}
+
 let state = {
     'querySet': "",
     'page' : 1,
     'rows': 10,
     'window': 5,
 }
+
 function showHistory() {
     $('.table').prop('hidden', false);
     buildTable()
 }
+
 function pagination(querySet, page, rows) {
 
     let trimStart = (page - 1) * rows
@@ -115,9 +112,12 @@ function getHistory(id, type, TimeFrom, TimeTo) {
         }
     });
 }
+
 $(document).ready(function () {
-    let deviceId = getDeviceID();
+
+    let deviceId = new URLSearchParams(window.location.search).get('id');
     let deviceType = "device";
+
     $('#object-id-input').val(deviceId);
     $('#object-type-input').val(deviceType);
     $('#btn_getHistory').on("click",function () {
@@ -127,4 +127,27 @@ $(document).ready(function () {
             getHistory(deviceId, deviceType, timeFrom, timeTo);
         }
     })
+    getDeviceStructure()
 });
+
+
+function getDeviceStructure(){
+
+    let deviceId = new URLSearchParams(window.location.search).get('id');
+    if(deviceId === null){
+        console.error("device id is undefined");
+        return;
+    }
+
+    let device = $('#deviceStructure')[0];
+    $.ajax({
+        url:'http://localhost:8083/device',
+        type: 'GET',
+        cache: false,
+        data: {'id' : deviceId},
+        crossDomain: true,
+        beforeSend: ()=> device.innerHTML = "<p> Loading ... </p>",
+        success: ()=> device.innerHTML = "<p> Loaded </p>",
+        error:  ()=> device.innerHTML = "<p> Failed to load structure </p>",
+    });
+}
