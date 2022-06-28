@@ -16,7 +16,7 @@ public class ModuleProducerConfiguration {
     private final String topic;
     private final Integer partition;
 
-    public ModuleProducerConfiguration(@DefaultValue("1") Integer partition, String topic, @Nullable String key) {
+    public ModuleProducerConfiguration(@DefaultValue("0") Integer partition, String topic, @Nullable String key) {
         this.partition = partition;
         this.topic = topic;
         this.key = key;
