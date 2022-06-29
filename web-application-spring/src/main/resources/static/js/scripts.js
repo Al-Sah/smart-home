@@ -6,24 +6,21 @@ $(document).ready(function () {
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
         let data = jsonMessage.data;
-
+        //console.log('Device message:', jsonMessage.action);
         switch (jsonMessage.action) {
             case "START":
                 onStart(data);
+                //console.log('Devices:', deviceList)
                 showDevicesInfo();
-                showHubsInfo();
-                break;
+                showHubsInfo();break;
             case "HUB_CONNECTED": break;
             case "DEVICE_CONNECTED":
                 onDeviceConnected(data);
-                showDevicesInfo();
-                break;
+                showDevicesInfo();break;
             case "DEVICE_MESSAGE":
-                onDeviceMessage(data);
-                break;
+                onDeviceMessage(data);break;
             case "DEVICE_DISCONNECTED":
-                onDeviceDisconnected(data)
-                break;
+                onDeviceDisconnected(data);break;
             case "HUB_DISCONNECTED": break;
             default: break;
         }
@@ -39,6 +36,7 @@ let hubList = Array();
 * Show all devices information to screen
 */
 function showDevicesInfo() {
+    $('#data').html("");
     let data ="<div class=\"album py-5 bg-light\"><div class=\"container\"><div class=\"row\">";
     deviceList.forEach(function (item) {
         switch (item.metadata.type) {
@@ -107,43 +105,61 @@ function generateDeviceComponentsHtml(obj){
         let mainProperty = component.mainProperty;
 
         let editSection = '';
+        let constSection ='';
         let trimmedValue = parseFloat(mainProperty.value).toFixed(1);
-        let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
+        let buttons ='';
+        //let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
         let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${trimmedValue} </span> ${mainProperty.unit}`;
         if(component.writableProperties !== undefined){
             buttons += `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
-            editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties)
-            baseSection = `${mainProperty.description} ${trimmedValue} ${mainProperty.unit}`;
+            editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties);
+            //baseSection = `${mainProperty.description} <span id="${component.id}--span">${trimmedValue}</span> ${mainProperty.unit}`;
         }
-
+        if(component.constProperties !== undefined){
+            //console.log('Const Prop',component.constProperties);
+            buttons+=` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-const" aria-expanded="false" aria-controls="${component.id}-const"> Constant props </button>`;
+            constSection = printConstPropertySection(obj.state.owner, obj.metadata.id, component.id, component.constProperties);
+        }
+        let changeSection = buttons+constSection+editSection;
+        if(changeSection !== ''){
+            changeSection = `<p>${changeSection}</p>`
+        }
        data+=` 
         <li id="${component.id}">
             ${baseSection}
-            <p>
-                ${buttons}
-                <div class="collapse" id="${component.id}-info">
-                    <div class="card card-body">
-                        Const properties:
-                        <div>
-                            <p>name: ${mainProperty.name}</p>
-                            <p>unit: ${mainProperty.unit}</p>
-                            <p>description: ${mainProperty.description}</p>
-                            <p>constraint:
-                                <ul>
-                                    <li>type:${mainProperty.constraint.type} </li>
-                                    <li>min: ${mainProperty.constraint.min}</li>
-                                    <li>max:${mainProperty.constraint.max} </li>
-                                </ul>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                ${editSection}
-            </p>
+            ${changeSection}
        </li>`
     });
 
     return data;
+}
+
+function printConstPropertySection(hubId, deviceId, componentId, properties){
+    let items = "";
+    if(properties)
+    properties.forEach(function (property , key) {
+        items+=`<div>
+            <p>name: ${property.name}</p>
+            <p>unit: ${property.unit}</p>
+            <p>description: ${property.description}</p>
+            <p>value: ${property.value}</p>`;
+        if(property.constraint !== undefined){
+            items+=`<ul>
+                <li>type:${property.constraint.type} </li>
+                <li>min: ${property.constraint.min}</li>
+                <li>max:${property.constraint.max} </li>
+            </ul>`;
+        }
+        items+='</div>';
+    })
+    return `
+        <div class="collapse" id="${componentId}-const">
+            <div class="card card-body">
+                <form id="${hubId}--${deviceId}--${componentId}">
+                    ${items}
+                </form>
+            </div>
+        </div>`;
 }
 
 function printEditPropertySection(hubId, deviceId, componentId, properties){
