@@ -52,25 +52,6 @@ function showDevicesInfo() {
 
 function generateSensorHtml(item){
 
-    let state;
-
-    if(!("state" in item)){
-        state = `
-            <div class="box-shadow">
-                <p>Device state in undefined (inactive)</p>
-            </div>`;
-    } else {
-        let lastUpdate = ("lastUpdate" in item.state) ? new Date(item.state.lastUpdate).toLocaleString() : "undefined";
-        let lastConnection = ("lastConnection" in item.state) ? new Date(item.state.lastConnection).toLocaleString() : "undefined";
-        state = `
-            <div class="box-shadow">
-                Device is ${item.state.active ? "active" : "inactive"}:
-                <p>
-                    <small class="text-muted">last connection: ${lastConnection} <br> last update: ${lastUpdate}</small>
-                </p>
-            </div>`;
-    }
-
     let icon = "img/default.png";
     if(item.metadata.name.includes("thermometer")){
         icon = "img/thermometer.png";
@@ -80,66 +61,79 @@ function generateSensorHtml(item){
         <div class="col-md-4" id="${item.metadata.id}">
             <div class="card mb-4 box-shadow">
                 <div class="card-body">
-                    <div class="row media border border-light rounded">
-                        <div class="col-md-auto">
-                            <p class="text-primary"> Type: ${item.metadata.name} <br> <small class="text-secondary"> id: ${item.metadata.id}</small></p>
-                            ${state}
+                    <div class="d-flex justify-content-between media">
+                        <div>
+                            <p class="text-primary text-center"> ${item.metadata.name} <br> <small class="text-secondary"> ${item.metadata.id}</small></p>
+                            ${generateDeviceState(item)}
                         </div>
-                        <div class="col col-lg-2">
-                            <img class="ml-3 rounded" src="${icon}" alt="icon (._.)" width="80" height="80">
-                        </div>
+                        <img class="ml-3" src="${icon}" alt="icon (._.)" width="80" height="80">
                     </div>
                     ${generateDeviceComponentsHtml(item)}
-                    <div> <a href="history.html?id=${item.metadata.id}">Device history</a></div>
+                    <div class="text-center"> <a href="history.html?id=${item.metadata.id}" > History of changes </a></div>
                 </div>
             </div>
         </div>
     `;
 }
 
+function generateDeviceState(item){
+
+    if(!("state" in item)){
+        return `<div class="box-shadow"><p>Device state in undefined (inactive)</p></div>`;
+    }
+    let state = item.state;
+    let update = ("lastUpdate" in state) ? new Date(state.lastUpdate).toLocaleString() : "undefined";
+    let connection = ("lastConnection" in state) ? new Date(state.lastConnection).toLocaleString() : "undefined";
+
+    return `
+        <div> Device is ${item.state.active ? "active" : "inactive"}:
+            <p><small class="text-muted">last connection: ${connection} <br> last update: ${update}</small></p>
+        </div>`;
+}
+
 function generateDeviceComponentsHtml(obj){
     let data = '';
-
     obj.metadata.components.forEach(function (component) {
-
-        let mainProperty = component.mainProperty;
 
         let editSection = '';
         let constSection ='';
-        let trimmedValue = parseFloat(mainProperty.value).toFixed(1);
         let buttons ='';
-        //let buttons = ` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-info" aria-expanded="false" aria-controls="${component.id}-info"> Contanat props </button>`;
-        let baseSection = `${mainProperty.description} <span id="${component.id}--span"> ${trimmedValue} </span> ${mainProperty.unit}`;
-        if(component.writableProperties !== undefined){
-            buttons += `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-edit" aria-expanded="false" aria-controls="${component.id}-edit"> Writable props </button>`;
+
+        let buttonSetup = `class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" aria-expanded="false"`;
+        if("writableProperties" in component && component.writableProperties !== null && component.writableProperties.length !== 0){
+            buttons += `
+                <button ${buttonSetup} data-bs-target="#${component.id}-edit" aria-controls="${component.id}-edit"> 
+                    Writable properties 
+                </button>`;
             editSection = printEditPropertySection(obj.state.owner, obj.metadata.id, component.id, component.writableProperties);
-            //baseSection = `${mainProperty.description} <span id="${component.id}--span">${trimmedValue}</span> ${mainProperty.unit}`;
         }
-        if(component.constProperties !== undefined){
-            //console.log('Const Prop',component.constProperties);
-            buttons+=` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-const" aria-expanded="false" aria-controls="${component.id}-const"> Constant props </button>`;
+        if("constProperties" in component && component.constProperties !== null && component.constProperties.length !== 0){
+            buttons += `
+                <button ${buttonSetup} data-bs-target="#${component.id}-const" aria-controls="${component.id}-const"> 
+                    Constant properties
+                </button>`;
             constSection = printConstPropertySection(component.constProperties, component.id);
         }
-        let changeSection = buttons+constSection+editSection;
-        if(changeSection !== ''){
-            changeSection = `<p>${changeSection}</p>`
+        let propertiesSection = buttons + constSection + editSection;
+        if(propertiesSection !== ''){
+            propertiesSection = `<p>${propertiesSection}</p>`
         }
-       data+=` 
-        <li id="${component.id}">
-            ${baseSection}
-            ${changeSection}
-       </li>`
-    });
 
-    return data;
+        let mainProperty = component.mainProperty;
+        data += `
+            <li id="${component.id}" class="list-group-item">
+                <div class="p-2 mb-2 border-bottom ">
+                    ${mainProperty.name}: <span id="${component.id}--span"> ${parseFloat(mainProperty.value).toFixed(1)} </span> 
+                    ${mainProperty.unit} <br>
+                    <small> ${mainProperty.description} </small>
+                </div>
+                ${propertiesSection}
+            </li>`
+    });
+    return `<ul class="list-group"> ${data} </ul>`;
 }
 
 function printConstPropertySection(properties, componentId){
-
-    if(properties === null || properties.length === 0){
-        return "";
-    }
-
     let items = "";
     properties.forEach(function (property) {
         let constraint = '';
@@ -151,7 +145,7 @@ function printConstPropertySection(properties, componentId){
                 </p>`;
         }
         items += `
-            <div class="border-top border-bottom border-light">
+            <div class="list-group-item">
                 <p> 
                     ${property.name}:  ${property.value} ${property.unit} <br>
                     <small> ${property.description} </small>
@@ -161,18 +155,22 @@ function printConstPropertySection(properties, componentId){
     })
     return `
         <div class="collapse" id="${componentId}-const">
-            <div class="card card-body">
-                ${items}
-            </div>
+            <ul class="list-group list-group-flush shadow-sm">${items}</ul>
         </div>`;
 }
 
 function printEditPropertySection(hubId, deviceId, componentId, properties){
     let items = "";
-    properties.forEach(function (property , key) {
-        items+=`<div><label for="${componentId}-input${key}">Enter ${property.description}</label>
-            <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
-            <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}"  type="button" onclick="sendRequestToChangeProperty(this, '${hubId}','${deviceId}', '${componentId}', '${property.name}','${componentId}-input${key}')">Submit</button></div>`;
+    properties.forEach(function (property , key) { //TODO different constrains
+        items+=`
+            <div>
+                <label for="${componentId}-input${key}"> Enter ${property.description}</label>
+                <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
+                <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(this, '${hubId}','${deviceId}', '${componentId}', '${property.name}','${componentId}-input${key}')">
+                    Submit
+                </button>
+            </div>`;
+        // TODO show current value
     });
     return `
         <div class="collapse" id="${componentId}-edit">
@@ -326,7 +324,9 @@ function onDeviceMessage(json){
 
     if(updateDeviceProperty(json.message)){
         let trimmedValue = parseFloat(json.message.value).toFixed(1);
+        // TODO lastX can be null (check)
         let lastConnection = new Date(json.state.lastConnection).toLocaleString();
+        // TODO lastX can be null (check)
         let lastUpdate = new Date(json.state.lastUpdate).toLocaleString();
         let timeStamp = `last connection: ${lastConnection} <br> last update: ${lastUpdate}`;
         $(`#${json.message.component}--span`).text(trimmedValue);
