@@ -8,45 +8,45 @@
 <body>
 
 <div class="container">
-    <div class="row">
+    <div class="row align-items-center">
         <div class="col">
-            <div id="deviceStructure">
+            <div id="device-structure">
                 Content
             </div>
         </div>
-            <div class="col">
-                <form class="shadow p-3 bg-light rounded">
-                    <p> Click to the device components to get history of changes </p>
-                    <div class="form-group row m-2">
-                        <label for="object-id-input" class="col-sm-2 col-form-label col-form-label-sm"> Id</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control form-control-sm" id="object-id-input" placeholder=" id ... " disabled>
-                        </div>
+        <div class="col">
+            <form class="shadow p-3 bg-light rounded">
+                <p> Click to the device components to get history of changes </p>
+                <div class="form-group row m-2">
+                    <label for="object-id-input" class="col-sm-2 col-form-label col-form-label-sm"> Id</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control form-control-sm" id="object-id-input" placeholder=" id ... " disabled>
                     </div>
-                    <div class="form-group row m-2 pb-1">
-                        <label for="object-type-input" class="col-sm-2 col-form-label col-form-label-sm"> Type</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control form-control-sm" id="object-type-input" placeholder=" (hub/device/component)" disabled>
-                        </div>
+                </div>
+                <div class="form-group row m-2 pb-1">
+                    <label for="object-type-input" class="col-sm-2 col-form-label col-form-label-sm"> Type</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control form-control-sm" id="object-type-input" placeholder=" (hub/device/component)" disabled>
                     </div>
+                </div>
 
-                    <div class="form-group m-2 col-xs-1 text-center">
-                        <p class="mx-auto mt-2"> Setup time period</p>
-                        <div class="d-flex justify-content-around pb-2">
-                            <label class="form-check-label">
-                                From <input type="date" id = "timeFrom_input">
-                            </label>
-                            <label class="form-check-label">
-                                To <input type="date" id = "timeTo_input">
-                            </label>
-                        </div>
+                <div class="form-group m-2 col-xs-1 text-center">
+                    <p class="mx-auto mt-2"> Setup time period</p>
+                    <div class="d-flex justify-content-around pb-2">
+                        <label class="form-check-label">
+                            From <input type="date" id = "time-from-input">
+                        </label>
+                        <label class="form-check-label">
+                            To <input type="date" id = "time-to-input">
+                        </label>
                     </div>
+                </div>
 
-                    <div class="form-group mt-2 pt-2 col-xs-1 text-center">
-                        <button type="button" class="btn btn-primary mb-2" id="btn_getHistory"> Get History</button>
-                    </div>
-                </form>
-            </div>
+                <div class="form-group mt-2 pt-2 col-xs-1 text-center">
+                    <button type="button" class="btn btn-primary mb-2" id="get-history-button"> Get History</button>
+                </div>
+            </form>
+        </div>
     </div>
     <div class="row">
         <div class="col">
