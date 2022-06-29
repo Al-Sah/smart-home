@@ -1,7 +1,7 @@
 
 $(document).ready(function () {
 
-    const ws = new WebSocket("ws://188.166.82.71:8083/ds");
+    const ws = new WebSocket("ws://localhost:8083/ds");
 
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
@@ -20,7 +20,7 @@ $(document).ready(function () {
             case "DEVICE_MESSAGE":
                 onDeviceMessage(data);break;
             case "DEVICE_DISCONNECTED":
-                onDeviceDisconnected(data);break;
+                onDeviceDisconnected(data);break; //TODO refresh ui
             case "HUB_DISCONNECTED": break;
             default: break;
         }
@@ -90,7 +90,7 @@ function generateSensorHtml(item){
                         </div>
                     </div>
                     ${generateDeviceComponentsHtml(item)}
-                    ${generateDeviceHistoryHtml(item)}
+                    <div> <a href="history.html?id=${item.metadata.id}">Device history</a></div>
                 </div>
             </div>
         </div>
@@ -118,7 +118,7 @@ function generateDeviceComponentsHtml(obj){
         if(component.constProperties !== undefined){
             //console.log('Const Prop',component.constProperties);
             buttons+=` <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#${component.id}-const" aria-expanded="false" aria-controls="${component.id}-const"> Constant props </button>`;
-            constSection = printConstPropertySection(obj.state.owner, obj.metadata.id, component.id, component.constProperties);
+            constSection = printConstPropertySection(component.constProperties, component.id);
         }
         let changeSection = buttons+constSection+editSection;
         if(changeSection !== ''){
@@ -134,30 +134,35 @@ function generateDeviceComponentsHtml(obj){
     return data;
 }
 
-function printConstPropertySection(hubId, deviceId, componentId, properties){
+function printConstPropertySection(properties, componentId){
+
+    if(properties === null || properties.length === 0){
+        return "";
+    }
+
     let items = "";
-    if(properties)
-    properties.forEach(function (property , key) {
-        items+=`<div>
-            <p>name: ${property.name}</p>
-            <p>unit: ${property.unit}</p>
-            <p>description: ${property.description}</p>
-            <p>value: ${property.value}</p>`;
+    properties.forEach(function (property) {
+        let constraint = '';
         if(property.constraint !== undefined){
-            items+=`<ul>
-                <li>type:${property.constraint.type} </li>
-                <li>min: ${property.constraint.min}</li>
-                <li>max:${property.constraint.max} </li>
-            </ul>`;
+            constraint = ` 
+                <p> 
+                    Constrint ${property.constraint.type}: <br>
+                    min: ${property.constraint.min}  |  max: ${property.constraint.max}
+                </p>`;
         }
-        items+='</div>';
+        items += `
+            <div class="border-top border-bottom border-light">
+                <p> 
+                    ${property.name}:  ${property.value} ${property.unit} <br>
+                    <small> ${property.description} </small>
+                </p>
+                ${constraint}
+            </div>`;
     })
     return `
         <div class="collapse" id="${componentId}-const">
             <div class="card card-body">
-                <form id="${hubId}--${deviceId}--${componentId}">
-                    ${items}
-                </form>
+                ${items}
             </div>
         </div>`;
 }
@@ -179,31 +184,6 @@ function printEditPropertySection(hubId, deviceId, componentId, properties){
         </div>`;
 }
 
-function generateDeviceHistoryHtml(obj){
-    let data = "";
-    data+=`<div> <a href="history.html?id=${obj.metadata.id}">Device history</a></div>`;
-    return data;
-}
-/*function generateDeviceHistoryHtml(obj){
-    let data ="";
-    data+=`<div>
-            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas--${obj.metadata.id}" aria-controls="offcanvas--${obj.metadata.id}">
-                Load history of device
-            </button>
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas--${obj.metadata.id}" aria-labelledby="offcanvas${obj.metadata.id}Label">
-                 <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvas${obj.metadata.id}leLabel">${obj.metadata.name} history:</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <div>
-                    Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
-                    </div>
-                </div>
-            </div>
-    </div>`;
-    return data;
-}*/
 /**
  * Show all hubs information to screen
  */
@@ -363,7 +343,7 @@ function onDeviceDisconnected(json) {
     let id = json.details.id;
 
     let filteredDevices = deviceList.filter(device => {
-        return device.metadata === id;
+        return device.metadata.id === id;
     })
     if(filteredDevices[0] === undefined){
         console.error("ERROR: devices filtering; searched device: " + id);
