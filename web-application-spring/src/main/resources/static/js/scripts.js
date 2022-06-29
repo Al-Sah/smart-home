@@ -6,7 +6,6 @@ $(document).ready(function () {
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
         let data = jsonMessage.data;
-        //console.log(jsonMessage);
 
         switch (jsonMessage.action) {
             case "START":
@@ -260,14 +259,11 @@ function onStart(json) {
 function onDeviceConnected(json) {
 
     let addStatus = true;
-    // TODO replace with filter ?
     deviceList.forEach(function (item) {
         if(json.state === item.id){
-            // FIXME !! 'components' is an array (each component has main property)
-            item.metadata.components.mainProperty.value = json.components.value;
-            item.state.active = true;
+            item.metadata.components = json.metadata.components;
+            item.state = json.metadata.state;
             addStatus = false;
-            // TODO add buttons .....
         }
     });
     if (addStatus){
@@ -327,19 +323,19 @@ function updateDeviceProperty(deviceMessage) {
  * 'DEVICE_MESSAGE' message handler
  */
 function onDeviceMessage(json){
-
     if(json.error !== undefined){
         console.log(json.error);
         return;
     }
 
     if(updateDeviceProperty(json.message)){
-        // FIXME !!!!!!!!!!!!!
-        //$(`li#${json.message.component} > span`).text(json.value);
-        let trimmedValue = parseFloat(json.value).toFixed(1);
-        $(`li#${json.message.component} > span`).text(trimmedValue);
+        let trimmedValue = parseFloat(json.message.value).toFixed(1);
+        let lastConnection = new Date(json.state.lastConnection).toLocaleString();
+        let lastUpdate = new Date(json.state.lastUpdate).toLocaleString();
+        let timeStamp = `last connection: ${lastConnection} <br> last update: ${lastUpdate}`;
+        $(`#${json.message.component}--span`).text(trimmedValue);
+        $(`#${json.message.device} > small`).text(timeStamp);
     }
-
 }
 
 
@@ -358,7 +354,6 @@ function onDeviceDisconnected(json) {
         return false;
     }
     filteredDevices[0].state.active = false;
-
 }
 
 /**
