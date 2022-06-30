@@ -2,17 +2,18 @@
 $(document).ready(function () {
 
     // setup form
+    // TODO set default time
     let deviceId = new URLSearchParams(window.location.search).get('id');
     let deviceType = "device";
     $('#object-id-input').val(deviceId);
     $('#object-type-input').val(deviceType);
 
-
     $('#get-history-button').on("click",function () {
-        // FIXME
+        // TODO check (can be null or 'NaN')
         let timeFrom = new Date($('#time-from-input').val()).getTime();
         let timeTo = new Date($('#time-to-input').val()).getTime();
 
+        // TODO if > timeFrom > timeTo  ERROR !!
         if((timeFrom && timeTo) !== undefined){
             getHistory($('#object-id-input').val(), $('#object-type-input').val(), timeFrom, timeTo);
         }
@@ -20,88 +21,12 @@ $(document).ready(function () {
     getDeviceStructure()
 });
 
-
-let state = {
-    'querySet': "",
-    'page' : 1,
-    'rows': 10,
-    'window': 5,
-}
-
-function pagination(querySet, page, rows) {
-
-    let trimStart = (page - 1) * rows
-    let trimEnd = trimStart + rows
-    return {
-        'querySet': querySet.slice(trimStart, trimEnd),
-        'pages': Math.round(querySet.length / rows),
-    }
-}
-
-function pageButtons(pages) {
-    let wrapper = document.getElementById('pagination_wrapper')
-    wrapper.innerHTML = ``;
-
-    console.log('Pages:', pages)
-
-    let maxLeft = (state.page - Math.floor(state.window / 2))
-    let maxRight = (state.page + Math.floor(state.window / 2))
-
-    if (maxLeft < 1) {
-        maxLeft = 1
-        maxRight = state.window
-    }
-
-    if (maxRight > pages) {
-        maxLeft = pages - (state.window - 1)
-
-        if (maxLeft < 1) {
-            maxLeft = 1
-        }
-        maxRight = pages
-    }
-
-
-
-    for (let page = maxLeft; page <= maxRight; page++) {
-        wrapper.innerHTML += `<button value=${page} class="page btn btn-sm btn-info">${page}</button>`
-    }
-
-    if (state.page !== 1) {
-        wrapper.innerHTML = `<button value=${1} class="page btn btn-sm btn-info">&#171; First</button>` + wrapper.innerHTML
-    }
-
-    if (state.page !== pages) {
-        wrapper.innerHTML += `<button value=${pages} class="page btn btn-sm btn-info">Last &#187;</button>`
-    }
-
-    $('.page').on('click', function() {
-        $('#result_table').empty()
-        state.page = Number($(this).val())
-        buildTable()
-    })
-}
-
-function buildTable() {
-    let table = $('#result_table')
-    table.empty();
-    let data = pagination(state.querySet, state.page, state.rows)
-    let myList = data.querySet;
-    myList.forEach(function (item) {
-        let lastDate = new Date(item.ts).toLocaleString()
-        let row = `<tr>
-                  <td>${item.component}</td>
-                  <td>${item.hub}</td>
-                  <td>${item.property}</td>
-                  <td>${Math.ceil(item.value)}</td>
-                  <td>${lastDate}</td>
-                  </tr>`
-        table.append(row)
-    });
-    pageButtons(data.pages)
-}
-
 function getHistory(id, type, TimeFrom, TimeTo) {
+
+    let button = $('#get-history-button');
+    let dataContainer = $("#data-container");
+    let paginationContainer = $('#pagination');
+    // TODO 'from' and 'to' are optional !!!
     $.ajax({
         url:'http://localhost:8080/history',
         type: 'GET',
@@ -109,21 +34,59 @@ function getHistory(id, type, TimeFrom, TimeTo) {
         data:{'type' : type, 'id' : id, 'from': TimeFrom, 'to': TimeTo},
         dataType: 'json',
         beforeSend: function() {
-            $('#get-history-button').prop('disabled',true);
+            dataContainer.html('');
+            paginationContainer.html('');
+            button.prop('disabled',true);
         },
-        success: function(data) {
-            state.querySet = data;
-            $('.table').prop('hidden', false);
-            buildTable()
-            $('#get-history-button').prop('disabled',false);
+        success: function (data) {
+            handleHistoryMessages(data)
+            button.prop('disabled',false);
         },
         error: function () {
-            console.log('error');
-            $('#get-history-button').prop('disabled',false);
+            dataContainer.html(`<p> Failed to get messages </p>`);
+            button.prop('disabled',false);
         }
     });
 }
 
+function handleHistoryMessages(itemsList){
+
+    let dataContainer = $("#data-container");
+    let paginationContainer = $('#pagination');
+
+    if(itemsList == null || itemsList.length === 0){
+        //TODO check (can be null or 'NaN')
+        let from = new Date($('#time-from-input').val()).toLocaleDateString();
+        let to = new Date($('#time-to-input').val()).toLocaleDateString();
+        dataContainer.html(`
+            <div>
+                <p> No messages found</p>
+                <p> Requested period: ${from} - ${to} </p>
+            </div>
+        `);
+        paginationContainer.html('');
+        return;
+    }
+
+    paginationContainer.pagination({
+        dataSource: itemsList,
+        pageSize: 10,
+        callback: (items) => dataContainer.html(generateMessagesList(items))
+    })
+}
+
+function generateMessagesList(data){
+    let items = '';
+    data.forEach( function (message) {
+        items+=`
+            <div class="list-group-item">
+                <p  class="test-primary"> Message: ${new Date(message.ts).toLocaleDateString()} </p>
+                <p> Value of property '${message.property}' changed to '${message.value}' </p>
+                <small class="test-secondary"> ${message.device} | ${message.component} </small>
+            </div>`
+    })
+    return `<ul class="list-group"> ${items} </ul>`
+}
 
 
 function getDeviceStructure(){
@@ -134,16 +97,16 @@ function getDeviceStructure(){
         return;
     }
 
-    let device = $('#device-structure')[0];
+    let device = $('#device-structure');
     $.ajax({
         url:'http://localhost:8083/device',
         type: 'GET',
         cache: false,
         data: {'id' : deviceId},
         crossDomain: true,
-        beforeSend: ()=> device.innerHTML = "<p> Loading ... </p>",
-        success: (item)=> device.innerHTML = printDeviceStructure(item.metadata),
-        error:  ()=> device.innerHTML = "<p> Failed to load structure </p>",
+        beforeSend: ()=> device.html("<p> Loading ... </p>"),
+        success: (item)=> device.html(printDeviceStructure(item.metadata)),
+        error:  ()=> device.html("<p> Failed to load structure </p>"),
     });
 }
 
