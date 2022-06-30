@@ -138,8 +138,7 @@ function generateComponentsList(components){
                     ${mainProperty.name};  unit: '${mainProperty.unit}' <br> 
                     <small> ${mainProperty.description} </small> 
                 </p>
-                ${generatePropertiesList(component.constProperties, 'constant')}
-                ${generatePropertiesList(component.writableProperties, 'writable')}
+                ${generatePropertiesList(component.writableProperties)}
             </div>
         </a>`;
     });
@@ -151,10 +150,10 @@ function updateFormInputs(id, type){
     $('#object-type-input').val(type);
 }
 
-function generatePropertiesList(properties, type){
+function generatePropertiesList(properties){
 
     if(properties === null || properties.length === 0){
-        return `<p>No ${type} properties specified</p>`;
+        return `<p>No writable properties specified</p>`;
     }
 
     let listItems = ``;
@@ -164,5 +163,5 @@ function generatePropertiesList(properties, type){
                 <p>${property.name} '${property.unit}' <br> <small> ${property.description} </small></p>
             </li>`
     })
-    return `<p> ${type} properties: </p><ul class="list-group">${listItems}</ul>`
+    return `<p> Writable properties: </p><ul class="list-group">${listItems}</ul>`
 }
