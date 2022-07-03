@@ -6,22 +6,32 @@ $(document).ready(function () {
     ws.onmessage = function (event) {
         let jsonMessage = JSON.parse(event.data);
         let data = jsonMessage.data;
-        //console.log('Device message:', jsonMessage.action);
         switch (jsonMessage.action) {
             case "START":
                 onStart(data);
-                //console.log('Devices:', deviceList)
                 showDevicesInfo();
-                showHubsInfo();break;
-            case "HUB_CONNECTED": break;
+                showHubsInfo();
+                console.log(hubList);break;
+            case "HUB_CONNECTED":
+                onHubConnected()
+                showDevicesInfo();
+                showHubsInfo();
+                break;
             case "DEVICE_CONNECTED":
                 onDeviceConnected(data);
-                showDevicesInfo();break;
+                showDevicesInfo();
+                showHubsInfo();break;
             case "DEVICE_MESSAGE":
                 onDeviceMessage(data);break;
             case "DEVICE_DISCONNECTED":
-                onDeviceDisconnected(data);break; //TODO refresh ui
-            case "HUB_DISCONNECTED": break;
+                onDeviceDisconnected(data);
+                showDevicesInfo();
+                showHubsInfo();break;
+            case "HUB_DISCONNECTED":
+                onHubDisconnected()
+                showDevicesInfo();
+                showHubsInfo();
+                break;
             default: break;
         }
     }
@@ -161,16 +171,16 @@ function printConstPropertySection(properties, componentId){
 
 function printEditPropertySection(hubId, deviceId, componentId, properties){
     let items = "";
-    properties.forEach(function (property , key) { //TODO different constrains
+    properties.forEach(function (property , key) {
         items+=`
             <div>
+                <p style="padding-bottom: 0">Current value: ${property.value}</p>
                 <label for="${componentId}-input${key}"> Enter ${property.description}</label>
                 <input type="number" class="form-control" id="${componentId}-input${key}" placeholder="${property.name}" min=${property.constraint.min} max=${property.constraint.max} step="0.1">
                 <button class="btnChangeSens btn btn-primary" id="btn${componentId}-input${key}" type="button" onclick="sendRequestToChangeProperty(this, '${hubId}','${deviceId}', '${componentId}', '${property.name}','${componentId}-input${key}')">
                     Submit
                 </button>
             </div>`;
-        // TODO show current value
     });
     return `
         <div class="collapse" id="${componentId}-edit">
@@ -258,6 +268,7 @@ function onDeviceConnected(json) {
             item.metadata.components = json.metadata.components;
             item.state = json.metadata.state;
             addStatus = false;
+
         }
     });
     if (addStatus){
@@ -265,6 +276,42 @@ function onDeviceConnected(json) {
     }
 }
 
+function onHubConnected(json) {
+    let addStatus = true;
+    hubList.forEach(function (item) {
+        if(json.state.id === item.id){
+            item.lastConnection = json.state.lastConnection;
+            item.lastDisconnection = json.state.lastDisconnection;
+            item.lastUpdate = json.state.lastUpdate;
+            item.active = true
+            addStatus = false;
+        }
+    });
+    if(addStatus) hubList.push(json);
+}
+
+
+function onHubDisconnected(json) {
+    let id = json.hubState.id;
+
+    let filteredHubs = hubList.filter(hub => {
+        return hub.id === id;
+    })
+    if(filteredHubs[0] === undefined){
+        console.error("ERROR: hubs filtering; searched hub: " + id);
+        return false;
+    }
+    filteredHubs[0].state.active = false;
+    json.devices.forEach(function (item) {
+        let filteredDevices = deviceList.filter(device => {
+            return device.metadata.id === item.id;
+        })
+        if(filteredDevices[0] !== undefined){
+            filteredDevices[0].state = item.state;
+            filteredDevices[0].state.active = false;
+        }
+    })
+}
 /**
  * Update device property in the array;
  *
