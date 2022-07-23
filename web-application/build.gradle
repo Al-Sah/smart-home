@@ -1,0 +1,44 @@
+
+plugins {
+    id 'org.springframework.boot' version '2.7.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'org.smarthome'
+version = '0.0.1-SNAPSHOT'
+description = 'web-application-spring'
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    implementation 'org.smarthome.sdk:module:1.1.1'
+    implementation 'org.smarthome.sdk:models:1.1.0'
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.0'
+    testImplementation 'org.springframework.security:spring-security-test:5.7.1'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.h2database:h2:2.1.212'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
